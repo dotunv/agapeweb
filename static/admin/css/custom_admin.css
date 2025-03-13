@@ -1,0 +1,90 @@
+/* Custom Admin Styles */
+
+/* Header */
+#header {
+    background: #2c3e50;
+    color: #fff;
+}
+
+/* Brand */
+#branding h1 {
+    color: #fff;
+}
+
+/* Links */
+a:link, a:visited {
+    color: #2c3e50;
+}
+
+/* Buttons */
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+    background: #2c3e50;
+    color: #fff;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+    background: #34495e;
+}
+
+/* List view */
+#result_list th {
+    background: #f8f9fa;
+    color: #2c3e50;
+}
+
+#result_list tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Form */
+.form-row {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Dashboard */
+.dashboard .module table th {
+    background: #f8f9fa;
+    color: #2c3e50;
+}
+
+/* Messages */
+.messagelist li {
+    background: #f8f9fa;
+    border-left: 4px solid #2c3e50;
+}
+
+/* Navigation */
+#nav-sidebar {
+    background: #f8f9fa;
+}
+
+#nav-sidebar .current-app .section:link, #nav-sidebar .current-app .section:visited {
+    color: #2c3e50;
+}
+
+/* Breadcrumbs */
+div.breadcrumbs {
+    background: #34495e;
+    color: #fff;
+}
+
+/* Login page */
+.login #header {
+    background: #2c3e50;
+}
+
+.login #container {
+    border: 1px solid #2c3e50;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    #header {
+        padding: 10px;
+    }
+    
+    #branding h1 {
+        font-size: 1.5em;
+    }
+} 

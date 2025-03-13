@@ -1,0 +1,18 @@
+Django>=5.1.7
+djangorestframework>=3.14.0
+django-rest-knox>=4.2.0
+django-cors-headers>=4.3.1
+django-environ>=0.11.2
+drf-spectacular>=0.27.1
+psycopg2-binary>=2.9.9  # For PostgreSQL support
+Pillow>=10.2.0  # For image handling
+python-dotenv>=1.0.1
+gunicorn>=21.2.0  # For production deployment
+whitenoise>=6.6.0  # For serving static files in production
+
+# Monitoring and Logging
+django-debug-toolbar>=4.3.0  # For development debugging
+sentry-sdk>=1.39.1  # For error tracking
+django-prometheus>=2.3.1  # For metrics collection
+prometheus-client>=0.19.0  # For custom metrics
+python-json-logger>=2.0.7  # For structured JSON logging 
