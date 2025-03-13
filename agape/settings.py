@@ -257,6 +257,11 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'json',
         },
+        'sentry': {
+            'class': 'sentry_sdk.integrations.logging.SentryHandler',
+            'level': 'ERROR',
+            'formatter': 'json',
+        },
     },
     'loggers': {
         'django': {
@@ -274,6 +279,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'sentry': {
+            'handlers': ['sentry'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
     },
 }
 
@@ -290,13 +300,54 @@ if DEBUG:
 if not DEBUG:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
     
     sentry_sdk.init(
         dsn=env('SENTRY_DSN', default=''),
-        integrations=[DjangoIntegration()],
+        integrations=[
+            DjangoIntegration(),
+            SqlalchemyIntegration(),
+            RedisIntegration(),
+        ],
+        # Performance monitoring
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
+        # Session tracking
+        auto_session_tracking=True,
+        # Environment
+        environment=env('SENTRY_ENVIRONMENT', default='production'),
+        # Release tracking
+        release=env('SENTRY_RELEASE', default='1.0.0'),
+        # Error sampling
+        sample_rate=1.0,
+        # Custom tags
+        tags={
+            'app': 'agape',
+            'version': env('SENTRY_RELEASE', default='1.0.0'),
+        },
+        # Custom before_send hook
+        before_send=lambda event, hint: {
+            **event,
+            'tags': {
+                **event.get('tags', {}),
+                'custom_tag': 'value',
+            }
+        } if 'exception' in hint else event,
     )
+    
+    # Configure Sentry logging
+    LOGGING['handlers']['sentry'] = {
+        'class': 'sentry_sdk.integrations.logging.SentryHandler',
+        'level': 'ERROR',
+        'formatter': 'json',
+    }
+    
+    LOGGING['loggers']['sentry'] = {
+        'handlers': ['sentry'],
+        'level': 'ERROR',
+        'propagate': False,
+    }
 
 # Prometheus settings
 PROMETHEUS_EXPORT_MIGRATIONS = False

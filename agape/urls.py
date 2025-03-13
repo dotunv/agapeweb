@@ -34,8 +34,9 @@ def redirect_to_docs(request):
     return redirect('swagger-ui')
 
 urlpatterns = [
-    path('', redirect_to_docs, name='home'),
+    path('/', redirect_to_docs, name='home'),
     path('admin/', admin_site.urls),
+
     
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
@@ -44,6 +45,7 @@ urlpatterns = [
     
     # Monitoring
     path('metrics/', exports.ExportToDjangoView, name='prometheus-django-metrics'),
+    path('monitoring/', include('monitoring.urls')),
     
     # API Routes
     path('api/auth/', include('knox.urls')),
