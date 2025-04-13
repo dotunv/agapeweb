@@ -1,0 +1,14 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Django Debug Toolbar{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'debug_toolbar/css/toolbar.css' %}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+    <script src="{% static 'debug_toolbar/js/toolbar.js' %}"></script>
+    {% block javascript %}{% endblock %}
+</body>
+</html> 

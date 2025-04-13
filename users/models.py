@@ -8,6 +8,10 @@ class User(AbstractUser):
     referral_code = models.CharField(max_length=10, unique=True, null=True, blank=True)
     referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
     
+    # Google OAuth fields
+    google_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    profile_picture = models.URLField(max_length=500, null=True, blank=True)
+    
     # Wallets for different subscription plans
     basic1_wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     basic2_wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -21,8 +25,8 @@ class User(AbstractUser):
     # Funding wallet
     funding_wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return self.username
+        return self.email

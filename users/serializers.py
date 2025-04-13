@@ -1,26 +1,26 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.serializers import SocialLoginSerializer
 
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'referral_code', 'referred_by',
-                 'basic1_wallet', 'basic2_wallet', 'standard_wallet',
-                 'ultimate1_wallet', 'ultimate2_wallet', 'referral_bonus_wallet',
-                 'funding_wallet')
-        read_only_fields = ('id', 'referral_code', 'referred_by')
+        fields = ('id', 'username', 'email', 'profile_picture', 'referral_code', 'referred_by')
+        read_only_fields = ('id', 'referral_code')
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
+class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
-    referral_code = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'password2', 'referral_code')
+        fields = ('username', 'password', 'password2', 'email')
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
@@ -28,21 +28,24 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop('password2')
-        referral_code = validated_data.pop('referral_code', None)
-        
         user = User.objects.create(
             username=validated_data['username'],
-            email=validated_data['email']
+            email=validated_data['email'],
         )
         user.set_password(validated_data['password'])
-        
-        if referral_code:
-            try:
-                referrer = User.objects.get(referral_code=referral_code)
-                user.referred_by = referrer
-            except User.DoesNotExist:
-                pass
-        
         user.save()
-        return user 
+        return user
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Add custom claims
+        token['username'] = user.username
+        token['email'] = user.email
+        return token
+
+class GoogleLoginSerializer(SocialLoginSerializer):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = "postmessage"  # Used by Google OAuth
+    client_class = OAuth2Client 

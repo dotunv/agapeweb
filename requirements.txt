@@ -15,4 +15,11 @@ django-debug-toolbar>=4.3.0  # For development debugging
 sentry-sdk>=1.39.1  # For error tracking
 django-prometheus>=2.3.1  # For metrics collection
 prometheus-client>=0.19.0  # For custom metrics
-python-json-logger>=2.0.7  # For structured JSON logging 
+python-json-logger>=2.0.7  # For structured JSON logging
+
+# Authentication
+django-allauth>=0.61.1  # For social authentication
+django-rest-auth>=0.9.5  # For REST API authentication
+dj-rest-auth>=5.0.2  # For REST API social authentication 
+djangorestframework-simplejwt>=5.5.0
+cryptography>=42.0.0  # Required for django-allauth Google OAuth

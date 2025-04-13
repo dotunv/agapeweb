@@ -27,6 +27,9 @@ from drf_spectacular.views import (
     SpectacularRedocView,
 )
 from django_prometheus import exports
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView
 
 from agape.admin import admin_site
 
@@ -34,9 +37,8 @@ def redirect_to_docs(request):
     return redirect('swagger-ui')
 
 urlpatterns = [
-    path('/', redirect_to_docs, name='home'),
+    path('', redirect_to_docs, name='home'),
     path('admin/', admin_site.urls),
-
     
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
@@ -47,15 +49,27 @@ urlpatterns = [
     path('metrics/', exports.ExportToDjangoView, name='prometheus-django-metrics'),
     path('monitoring/', include('monitoring.urls')),
     
-    # API Routes
-    path('api/auth/', include('knox.urls')),
+    # Core API Routes
+    path('api/', include('core.urls')),
+    
+    # Authentication
+    path('api/auth/', include('users.urls')),
     path('api/auth/logout/', LogoutView.as_view(), name='knox_logout'),
     path('api/auth/logoutall/', LogoutAllView.as_view(), name='knox_logoutall'),
+    
+    # API Routes
     path('api/users/', include('users.urls')),
     path('api/subscriptions/', include('subscriptions.urls')),
     path('api/transactions/', include('transactions.urls')),
 ]
 
+# Debug Toolbar URLs (must be before static/media URLs)
 if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
+    
+    # Static and Media files
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += [path('__debug__/', include('debug_toolbar.urls'))]
