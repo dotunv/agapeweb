@@ -23,3 +23,4 @@ django-rest-auth>=0.9.5  # For REST API authentication
 dj-rest-auth>=5.0.2  # For REST API social authentication 
 djangorestframework-simplejwt>=5.5.0
 cryptography>=42.0.0  # Required for django-allauth Google OAuth
+requests>=2.32.3
