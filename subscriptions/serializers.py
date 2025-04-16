@@ -1,36 +1,37 @@
 from rest_framework import serializers
-from .models import SubscriptionPlan, Subscription, Payment, QueuePosition
+from .models import Plan, Subscription, Contribution, Withdrawal
 
-class SubscriptionPlanSerializer(serializers.ModelSerializer):
+class PlanSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SubscriptionPlan
-        fields = '__all__'
-
-class QueuePositionSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='subscription.user.username', read_only=True)
-    
-    class Meta:
-        model = QueuePosition
-        fields = ('id', 'position', 'payments_received', 'username', 'created_at', 'updated_at')
+        model = Plan
+        fields = ['id', 'name', 'plan_type', 'price', 'max_members', 'maintenance_fee', 
+                 'repurchase_amount', 'withdrawal_limit']
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     plan_name = serializers.CharField(source='plan.name', read_only=True)
-    plan_amount = serializers.DecimalField(source='plan.amount', max_digits=10, decimal_places=2, read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
-    queue_position = QueuePositionSerializer(read_only=True)
-    
+
     class Meta:
         model = Subscription
-        fields = ('id', 'user', 'username', 'plan', 'plan_name', 'plan_amount',
-                 'status', 'queue_position', 'created_at', 'updated_at')
-        read_only_fields = ('status', 'queue_position')
+        fields = ['id', 'user', 'plan', 'plan_name', 'username', 'status', 'queue_position',
+                 'joined_at', 'completed_at', 'total_received', 'available_for_withdrawal']
+        read_only_fields = ['status', 'queue_position', 'total_received', 'available_for_withdrawal']
 
-class PaymentSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='subscription.user.username', read_only=True)
-    plan_name = serializers.CharField(source='subscription.plan.name', read_only=True)
-    
+class ContributionSerializer(serializers.ModelSerializer):
+    from_user = serializers.CharField(source='from_subscription.user.username', read_only=True)
+    to_user = serializers.CharField(source='to_subscription.user.username', read_only=True)
+
     class Meta:
-        model = Payment
-        fields = ('id', 'subscription', 'username', 'plan_name', 'amount',
-                 'status', 'transaction_id', 'created_at', 'approved_at')
-        read_only_fields = ('status', 'approved_at') 
+        model = Contribution
+        fields = ['id', 'from_subscription', 'to_subscription', 'from_user', 'to_user',
+                 'amount', 'created_at']
+        read_only_fields = ['created_at']
+
+class WithdrawalSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='subscription.user.username', read_only=True)
+
+    class Meta:
+        model = Withdrawal
+        fields = ['id', 'subscription', 'username', 'amount', 'status', 
+                 'requested_at', 'completed_at']
+        read_only_fields = ['status', 'completed_at'] 
