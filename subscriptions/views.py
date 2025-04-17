@@ -5,18 +5,17 @@ from rest_framework.response import Response
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import F
-from .models import SubscriptionPlan, Subscription, Payment, QueuePosition, Plan, Contribution, Withdrawal
+from .models import  Subscription, Plan, Contribution, Withdrawal
 from .serializers import (
-    SubscriptionPlanSerializer, SubscriptionSerializer,
-    PaymentSerializer, QueuePositionSerializer,
+    PlanSerializer, SubscriptionSerializer,
     PlanSerializer, ContributionSerializer, WithdrawalSerializer
 )
 
 # Create your views here.
 
 class SubscriptionPlanViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = SubscriptionPlan.objects.all()
-    serializer_class = SubscriptionPlanSerializer
+    queryset = Plan.objects.all()
+    serializer_class = PlanSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 class SubscriptionViewSet(viewsets.ModelViewSet):
@@ -57,32 +56,32 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
             ).count()
         })
 
-class PaymentViewSet(viewsets.ModelViewSet):
-    serializer_class = PaymentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# class PaymentViewSet(viewsets.ModelViewSet):
+#     serializer_class = PaymentSerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return Payment.objects.filter(subscription__user=self.request.user)
+#     def get_queryset(self):
+#         return Payment.objects.filter(subscription__user=self.request.user)
 
-    @action(detail=True, methods=['post'])
-    def approve(self, request, pk=None):
-        if not request.user.is_staff:
-            return Response(
-                {"error": "Only staff members can approve payments"},
-                status=status.HTTP_403_FORBIDDEN
-            )
+#     @action(detail=True, methods=['post'])
+#     def approve(self, request, pk=None):
+#         if not request.user.is_staff:
+#             return Response(
+#                 {"error": "Only staff members can approve payments"},
+#                 status=status.HTTP_403_FORBIDDEN
+#             )
             
-        payment = self.get_object()
-        payment.status = 'APPROVED'
-        payment.approved_at = timezone.now()
-        payment.save()
+#         payment = self.get_object()
+#         payment.status = 'APPROVED'
+#         payment.approved_at = timezone.now()
+#         payment.save()
         
-        # Update subscription status
-        subscription = payment.subscription
-        subscription.status = 'ACTIVE'
-        subscription.save()
+#         # Update subscription status
+#         subscription = payment.subscription
+#         subscription.status = 'ACTIVE'
+#         subscription.save()
         
-        return Response(PaymentSerializer(payment).data)
+#         return Response(PaymentSerializer(payment).data)
 
 class PlanViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Plan.objects.all()

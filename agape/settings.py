@@ -46,14 +46,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',  # Required for allauth
-    
-    # Third party apps
+    'django.contrib.sites',
     'rest_framework',
-    'knox',
     'corsheaders',
-    'drf_spectacular',
-    'django_prometheus',
+    'knox',
+    'users',
+    'subscriptions',
+    'transactions',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -62,30 +61,23 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'rest_framework_simplejwt',
     'rest_framework.authtoken',
-    
-    # Local apps
     'core',
-    'users',
-    'subscriptions',
-    'transactions',
-    'monitoring',
+    'drf_spectacular',
+    
 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'monitoring.middleware.MonitoringMiddleware',
-    'monitoring.middleware.DatabaseMonitoringMiddleware',
-    'django_prometheus.middleware.PrometheusAfterMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',  # Debug Toolbar middleware
 ]
 
 ROOT_URLCONF = 'agape.urls'
@@ -429,15 +421,3 @@ if not DEBUG:
         'level': 'ERROR',
         'propagate': False,
     }
-
-# Prometheus settings
-PROMETHEUS_EXPORT_MIGRATIONS = False
-PROMETHEUS_LATEST_BLOCK = True
-
-# Custom metrics settings
-CUSTOM_METRICS = {
-    'subscription_creation': True,
-    'payment_processing': True,
-    'user_registration': True,
-    'api_requests': True,
-}

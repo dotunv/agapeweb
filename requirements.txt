@@ -1,26 +1,20 @@
-Django>=5.1.7
-djangorestframework>=3.14.0
-django-rest-knox>=4.2.0
-django-cors-headers>=4.3.1
-django-environ>=0.11.2
-drf-spectacular>=0.27.1
-psycopg2-binary>=2.9.9  # For PostgreSQL support
-Pillow>=10.2.0  # For image handling
-python-dotenv>=1.0.1
-gunicorn>=21.2.0  # For production deployment
-whitenoise>=6.6.0  # For serving static files in production
-
-# Monitoring and Logging
-django-debug-toolbar>=4.3.0  # For development debugging
-sentry-sdk>=1.39.1  # For error tracking
-django-prometheus>=2.3.1  # For metrics collection
-prometheus-client>=0.19.0  # For custom metrics
-python-json-logger>=2.0.7  # For structured JSON logging
-
-# Authentication
-django-allauth>=0.61.1  # For social authentication
-django-rest-auth>=0.9.5  # For REST API authentication
-dj-rest-auth>=5.0.2  # For REST API social authentication 
-djangorestframework-simplejwt>=5.5.0
-cryptography>=42.0.0  # Required for django-allauth Google OAuth
-requests>=2.32.3
+Django>=4.2.0,<5.0.0
+djangorestframework>=3.14.0,<4.0.0
+django-cors-headers>=4.3.0,<5.0.0
+django-environ>=0.11.2,<1.0.0
+django-filter>=23.5,<24.0
+django-allauth>=0.57.0,<1.0.0
+dj-rest-auth>=5.0.1,<6.0.0
+djangorestframework-simplejwt>=5.3.0,<6.0.0
+django-knox>=4.2.0,<5.0.0
+drf-spectacular>=0.27.0,<1.0.0
+psycopg2-binary>=2.9.9,<3.0.0
+mysqlclient>=2.2.1,<3.0.0
+Pillow>=10.1.0,<11.0.0
+python-dotenv>=1.0.0,<2.0.0
+stripe>=7.6.0,<8.0.0
+requests>=2.31.0,<3.0.0
+gunicorn>=21.2.0,<22.0.0
+whitenoise>=6.6.0,<7.0.0
+django-storages>=1.14.2,<2.0.0
+boto3>=1.34.0,<2.0.0

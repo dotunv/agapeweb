@@ -26,7 +26,6 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
-from django_prometheus import exports
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
@@ -45,9 +44,6 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
-    # Monitoring
-    path('metrics/', exports.ExportToDjangoView, name='prometheus-django-metrics'),
-    path('monitoring/', include('monitoring.urls')),
     
     # Core API Routes
     path('api/', include('core.urls')),
