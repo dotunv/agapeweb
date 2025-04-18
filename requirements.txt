@@ -12,7 +12,7 @@ django-cors-headers==4.7.0
 django-debug-toolbar==5.1.0
 django-environ==0.12.0
 django-extensions==3.2.3
-django-migrations-graph==0.1.2
+django-migrations-graph==0.1.1
 django-redis==5.4.0
 django-rest-knox==5.0.2
 djangorestframework==3.16.0
@@ -29,7 +29,7 @@ packaging==24.2
 pillow==11.2.1
 psycopg2-binary==2.9.10
 pycparser==2.22
-pygraphviz==1.11
+#pygraphviz==1.11
 PyJWT==2.9.0
 python-dotenv==1.1.0
 python-json-logger==3.3.0
