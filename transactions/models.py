@@ -3,8 +3,16 @@ from django.conf import settings
 from django.utils import timezone
 from decimal import Decimal
 import uuid
+from typing import Optional, Union, List, Dict, Any, Tuple
 
 class Transaction(models.Model):
+    """
+    Represents a financial transaction in the system.
+
+    This model tracks all financial transactions, including deposits, withdrawals,
+    referral bonuses, and subscription payments. Each transaction has a type,
+    amount, status, and associated user.
+    """
     TRANSACTION_TYPES = [
         ('DEPOSIT', 'Deposit'),
         ('WITHDRAWAL', 'Withdrawal'),
@@ -29,13 +37,25 @@ class Transaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return a string representation of the transaction.
+
+        Returns:
+            str: The username, transaction type, and amount
+        """
         return f"{self.user.username} - {self.transaction_type} - {self.amount}"
 
 class Withdrawal(models.Model):
     """
     Handles withdrawal requests from users.
-    A 5% fee is applied to all withdrawals.
+
+    This model tracks withdrawal requests, including their status, amount, and type.
+    A 5% fee is applied to all withdrawals. Withdrawals can be from subscriptions,
+    wallets, or referral bonuses.
+
+    Withdrawals go through a workflow of being created, approved or rejected, and
+    then completed.
     """
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
@@ -65,15 +85,35 @@ class Withdrawal(models.Model):
     wallet = models.ForeignKey('subscriptions.Wallet', on_delete=models.SET_NULL,
                              null=True, blank=True, related_name='withdrawals')
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Override the save method to calculate the withdrawal fee if not already set.
+
+        Args:
+            *args: Variable length argument list
+            **kwargs: Arbitrary keyword arguments
+
+        Returns:
+            None
+        """
         # Calculate 5% withdrawal fee if not already set
         if not self.withdrawal_fee:
             self.withdrawal_fee = self.amount * Decimal('0.05')
         super().save(*args, **kwargs)
 
-    def approve(self):
+    def approve(self) -> 'Withdrawal':
         """
-        Approve the withdrawal request
+        Approve the withdrawal request.
+
+        This method changes the status of the withdrawal to 'APPROVED',
+        updates the processed_at timestamp, and updates the associated
+        transaction status to 'COMPLETED'.
+
+        Returns:
+            Withdrawal: The updated withdrawal object
+
+        Raises:
+            ValueError: If the withdrawal status is not 'PENDING'
         """
         if self.status != 'PENDING':
             raise ValueError(f"Cannot approve withdrawal with status {self.status}")
@@ -89,9 +129,20 @@ class Withdrawal(models.Model):
 
         return self
 
-    def reject(self):
+    def reject(self) -> 'Withdrawal':
         """
-        Reject the withdrawal request and refund the amount
+        Reject the withdrawal request and refund the amount.
+
+        This method changes the status of the withdrawal to 'REJECTED',
+        updates the processed_at timestamp, updates the associated
+        transaction status to 'FAILED', and refunds the amount to the
+        user's wallet if it's a wallet withdrawal.
+
+        Returns:
+            Withdrawal: The updated withdrawal object
+
+        Raises:
+            ValueError: If the withdrawal status is not 'PENDING'
         """
         if self.status != 'PENDING':
             raise ValueError(f"Cannot reject withdrawal with status {self.status}")
@@ -115,7 +166,13 @@ class Withdrawal(models.Model):
 
         return self
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return a string representation of the withdrawal.
+
+        Returns:
+            str: The username, amount, and withdrawal type or subscription plan name
+        """
         if self.subscription:
             return f"{self.user.username} - ${self.amount} - {self.subscription.plan.name} Withdrawal"
         return f"{self.user.username} - ${self.amount} - {self.get_withdrawal_type_display()}"

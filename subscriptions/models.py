@@ -5,10 +5,17 @@ from decimal import Decimal
 from django.db.models import F, Max
 from django.db import transaction
 import uuid
+from typing import Optional, Union, List, Dict, Any, Tuple
 
 User = get_user_model()
 
 class Plan(models.Model):
+    """
+    Represents a subscription plan in the system.
+
+    Each plan has a type, contribution amount, and various deduction rates.
+    Plans can be organized in a hierarchy with a next_plan relationship.
+    """
     PLAN_TYPES = [
         ('PRE_STARTER', 'Pre-Starter Plan'),
         ('STARTER', 'Starter Plan'),
@@ -36,13 +43,29 @@ class Plan(models.Model):
                                 related_name='previous_plans', 
                                 help_text="Next plan to upgrade to (if applicable)")
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return a string representation of the plan.
+
+        Returns:
+            str: The plan name and contribution amount
+        """
         return f"{self.name} (${self.contribution_amount})"
 
     class Meta:
+        """
+        Meta options for the Plan model.
+        """
         ordering = ['contribution_amount']
 
 class Subscription(models.Model):
+    """
+    Represents a user's subscription to a plan.
+
+    Tracks the status, queue position, and financial details of a subscription.
+    Subscriptions move through a queue system where position #1 receives payments
+    from other members.
+    """
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
         ('ACTIVE', 'Active'),
@@ -60,14 +83,37 @@ class Subscription(models.Model):
     available_for_withdrawal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
+        """
+        Meta options for the Subscription model.
+        """
         ordering = ['queue_position']
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return a string representation of the subscription.
+
+        Returns:
+            str: The username and plan name
+        """
         return f"{self.user.username} - {self.plan.name}"
 
-    def process_payment(self, from_subscription, amount):
+    def process_payment(self, from_subscription: 'Subscription', amount: Decimal) -> 'Contribution':
         """
-        Process a payment from another subscription to this one
+        Process a payment from another subscription to this one.
+
+        This method handles the logic for processing a payment from one subscription to another,
+        including updating the total received, handling queue position changes, and potentially
+        triggering an upgrade to the next plan.
+
+        Args:
+            from_subscription: The subscription making the payment
+            amount: The amount being paid
+
+        Returns:
+            Contribution: The created contribution record
+
+        Raises:
+            ValueError: If the subscription status is not 'ACTIVE' or if the subscription is not in a queue
         """
         if self.status != 'ACTIVE':
             raise ValueError(f"Cannot process payment for subscription with status {self.status}")
@@ -133,9 +179,23 @@ class Subscription(models.Model):
 
             return contribution
 
-    def request_withdrawal(self, amount):
+    def request_withdrawal(self, amount: Decimal) -> 'Withdrawal':
         """
-        Request a withdrawal from this subscription
+        Request a withdrawal from this subscription.
+
+        This method handles the logic for requesting a withdrawal from a subscription,
+        including validating the amount, updating the available_for_withdrawal balance,
+        and creating the necessary transaction and withdrawal records.
+
+        Args:
+            amount: The amount to withdraw
+
+        Returns:
+            Withdrawal: The created withdrawal record
+
+        Raises:
+            ValueError: If the subscription status is not 'ACTIVE', if the amount is greater
+                       than the available amount, or if the amount is not positive
         """
         if self.status != 'ACTIVE':
             raise ValueError(f"Cannot withdraw from subscription with status {self.status}")
@@ -178,12 +238,23 @@ class Subscription(models.Model):
             return withdrawal
 
 class Contribution(models.Model):
+    """
+    Represents a payment contribution from one subscription to another.
+
+    Tracks the source and destination subscriptions, amount, and timestamp of the contribution.
+    """
     from_subscription = models.ForeignKey(Subscription, related_name='contributions_made', on_delete=models.CASCADE)
     to_subscription = models.ForeignKey(Subscription, related_name='contributions_received', on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return a string representation of the contribution.
+
+        Returns:
+            str: The amount, source username, and destination username
+        """
         return f"${self.amount} from {self.from_subscription.user.username} to {self.to_subscription.user.username}"
 
 class Queue(models.Model):
@@ -204,13 +275,28 @@ class Queue(models.Model):
         ordering = ['plan', 'position']
         unique_together = [['plan', 'position']]
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return a string representation of the queue entry.
+
+        Returns:
+            str: The plan name, position number, and username
+        """
         return f"{self.plan.name} - Position #{self.position} - {self.subscription.user.username}"
 
-    def shift_queue(self):
+    def shift_queue(self) -> bool:
         """
         Remove position #1 and shift everyone up.
-        Called when position #1 has received all required payments.
+
+        This method is called when position #1 has received all required payments.
+        It marks the subscription as completed, removes the queue entry at position #1,
+        and shifts all other queue entries up by one position.
+
+        Returns:
+            bool: True if the queue was successfully shifted
+
+        Raises:
+            ValueError: If the queue entry is not at position #1
         """
         if self.position != 1:
             raise ValueError("Only position #1 can trigger a queue shift")
@@ -231,9 +317,18 @@ class Queue(models.Model):
             return True
 
     @classmethod
-    def add_to_queue(cls, subscription):
+    def add_to_queue(cls, subscription: Subscription) -> 'Queue':
         """
-        Add a subscription to the end of its plan's queue
+        Add a subscription to the end of its plan's queue.
+
+        This method creates a new queue entry for the subscription at the end of its plan's queue,
+        and updates the subscription's queue_position field.
+
+        Args:
+            subscription: The subscription to add to the queue
+
+        Returns:
+            Queue: The created queue entry
         """
         with transaction.atomic():
             # Find the highest position in this plan's queue
@@ -255,10 +350,14 @@ class Queue(models.Model):
 
 class Wallet(models.Model):
     """
-    Manages different types of wallets for users:
+    Manages different types of wallets for users.
+
+    There are three types of wallets:
     - Plan-specific wallets (linked to a specific subscription plan)
     - Funding wallet (for general funds)
     - Referral wallet (for referral bonuses)
+
+    Each wallet tracks its balance and provides methods for deposits and withdrawals.
     """
     WALLET_TYPES = [
         ('PLAN', 'Plan Wallet'),
@@ -277,15 +376,35 @@ class Wallet(models.Model):
     class Meta:
         unique_together = [['user', 'wallet_type', 'plan']]
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return a string representation of the wallet.
+
+        Returns:
+            str: The username, wallet type (with plan name for PLAN wallets), and balance
+        """
         if self.wallet_type == 'PLAN' and self.plan:
             return f"{self.user.username} - {self.plan.name} Wallet - ${self.balance}"
         return f"{self.user.username} - {self.get_wallet_type_display()} - ${self.balance}"
 
     @classmethod
-    def get_or_create_wallet(cls, user, wallet_type, plan=None):
+    def get_or_create_wallet(cls, user: User, wallet_type: str, plan: Optional['Plan'] = None) -> 'Wallet':
         """
-        Get or create a wallet for a user
+        Get or create a wallet for a user.
+
+        This method retrieves an existing wallet or creates a new one if it doesn't exist.
+        For PLAN wallet types, a plan must be specified.
+
+        Args:
+            user: The user who owns the wallet
+            wallet_type: The type of wallet ('PLAN', 'FUNDING', or 'REFERRAL')
+            plan: The plan associated with the wallet (required for PLAN wallet type)
+
+        Returns:
+            Wallet: The retrieved or created wallet
+
+        Raises:
+            ValueError: If wallet_type is 'PLAN' and no plan is provided
         """
         if wallet_type == 'PLAN' and not plan:
             raise ValueError("Plan is required for PLAN wallet type")
@@ -298,9 +417,22 @@ class Wallet(models.Model):
         )
         return wallet
 
-    def deposit(self, amount, description="Deposit"):
+    def deposit(self, amount: Decimal, description: str = "Deposit") -> Decimal:
         """
-        Add funds to the wallet and create a transaction record
+        Add funds to the wallet and create a transaction record.
+
+        This method increases the wallet balance by the specified amount and creates
+        a transaction record to track the deposit.
+
+        Args:
+            amount: The amount to deposit (must be positive)
+            description: A description of the deposit transaction
+
+        Returns:
+            Decimal: The new wallet balance after the deposit
+
+        Raises:
+            ValueError: If the amount is not positive
         """
         if amount <= 0:
             raise ValueError("Deposit amount must be positive")
@@ -326,9 +458,22 @@ class Wallet(models.Model):
 
             return self.balance
 
-    def withdraw(self, amount, description="Withdrawal"):
+    def withdraw(self, amount: Decimal, description: str = "Withdrawal") -> 'Withdrawal':
         """
-        Withdraw funds from the wallet and create a transaction record
+        Withdraw funds from the wallet and create a transaction record.
+
+        This method decreases the wallet balance by the specified amount and creates
+        transaction and withdrawal records to track the withdrawal.
+
+        Args:
+            amount: The amount to withdraw (must be positive and not exceed the balance)
+            description: A description of the withdrawal transaction
+
+        Returns:
+            Withdrawal: The created withdrawal record
+
+        Raises:
+            ValueError: If the amount is not positive or exceeds the available balance
         """
         if amount <= 0:
             raise ValueError("Withdrawal amount must be positive")
@@ -366,7 +511,12 @@ class Wallet(models.Model):
 class Referral(models.Model):
     """
     Tracks referral relationships and bonuses.
-    When a user subscribes to a plan, their referrer receives a 5% bonus.
+
+    This model records when a user is referred by another user and manages the
+    referral bonus system. When a user subscribes to a plan, their referrer
+    receives a 5% bonus of the subscription amount.
+
+    The bonus is automatically added to the referrer's referral wallet.
     """
     referrer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='referrals_made')
     referred_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='referral_record')
@@ -376,15 +526,34 @@ class Referral(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """
+        Meta options for the Referral model.
+        """
         unique_together = [['referrer', 'referred_user', 'subscription']]
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return a string representation of the referral.
+
+        Returns:
+            str: The referrer username, referred user username, and bonus amount
+        """
         return f"{self.referrer.username} referred {self.referred_user.username} - ${self.bonus_amount} bonus"
 
     @classmethod
-    def create_referral_bonus(cls, subscription):
+    def create_referral_bonus(cls, subscription: Subscription) -> Optional['Referral']:
         """
-        Create a referral bonus when a user subscribes to a plan
+        Create a referral bonus when a user subscribes to a plan.
+
+        This method calculates a 5% bonus based on the subscription plan's contribution amount,
+        creates a referral record, adds the bonus to the referrer's referral wallet, and
+        creates a transaction record for the bonus.
+
+        Args:
+            subscription: The subscription that triggered the referral bonus
+
+        Returns:
+            Optional[Referral]: The created referral record, or None if the user has no referrer
         """
         user = subscription.user
         referrer = user.referred_by

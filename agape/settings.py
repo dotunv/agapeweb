@@ -63,12 +63,11 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'core',
     'drf_spectacular',
-    
+    'django_extensions',
+    'django_migrations_graph',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -151,6 +150,45 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+# Cache settings
+# https://docs.djangoproject.com/en/5.2/topics/cache/
+
+REDIS_URL = env('REDIS_URL', default=None)
+
+if REDIS_URL:
+    # Production/staging cache with Redis
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'PARSER_CLASS': 'redis.connection.HiredisParser',
+                'CONNECTION_POOL_CLASS': 'redis.BlockingConnectionPool',
+                'CONNECTION_POOL_CLASS_KWARGS': {
+                    'max_connections': 50,
+                    'timeout': 20,
+                },
+                'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+                'IGNORE_EXCEPTIONS': True,
+            },
+            'KEY_PREFIX': 'agape',
+            'TIMEOUT': 300,  # 5 minutes
+        }
+    }
+    # Use Redis as the session backend
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'
+else:
+    # Development cache with local memory
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'agape-cache',
+            'TIMEOUT': 300,  # 5 minutes
+        }
+    }
 
 # Media files
 MEDIA_URL = 'media/'
@@ -375,7 +413,7 @@ if not DEBUG:
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
-    
+
     sentry_sdk.init(
         dsn=env('SENTRY_DSN', default=''),
         integrations=[
@@ -408,14 +446,14 @@ if not DEBUG:
             }
         } if 'exception' in hint else event,
     )
-    
+
     # Configure Sentry logging
     LOGGING['handlers']['sentry'] = {
         'class': 'sentry_sdk.integrations.logging.SentryHandler',
         'level': 'ERROR',
         'formatter': 'json',
     }
-    
+
     LOGGING['loggers']['sentry'] = {
         'handlers': ['sentry'],
         'level': 'ERROR',

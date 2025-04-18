@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db import transaction as db_transaction
 from django.utils import timezone
 from django.db.models import F, Q, Max
+from django.contrib.auth import get_user_model
 from .models import (
     Subscription, Plan, Contribution, Queue, Wallet, Referral
 )
@@ -12,6 +13,15 @@ from .serializers import (
     PlanSerializer, SubscriptionSerializer, ContributionSerializer,
     QueueSerializer, WalletSerializer, ReferralSerializer
 )
+from . import cache
+import logging
+from typing import List, Dict, Any, Optional, Union
+from rest_framework.request import Request
+
+# Get a logger for this module
+logger = logging.getLogger('agape.subscriptions')
+
+User = get_user_model()
 
 # Create your views here.
 
@@ -56,23 +66,43 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
-    def queue_position(self, request):
-        subscription = get_object_or_404(Subscription, user=request.user, status='ACTIVE')
-
+    def queue_position(self, request: Request) -> Response:
         try:
-            queue_entry = Queue.objects.get(subscription=subscription)
-            total_in_queue = Queue.objects.filter(plan=subscription.plan).count()
+            subscription = get_object_or_404(Subscription, user=request.user, status='ACTIVE')
+            logger.info(f"Fetching queue position for user={request.user.username}, subscription_id={subscription.id}")
 
+            try:
+                queue_entry = Queue.objects.get(subscription=subscription)
+                total_in_queue = Queue.objects.filter(plan=subscription.plan).count()
+
+                logger.info(
+                    f"Queue position found: user={request.user.username}, "
+                    f"subscription_id={subscription.id}, position={queue_entry.position}, "
+                    f"total_in_queue={total_in_queue}"
+                )
+
+                return Response({
+                    'position': queue_entry.position,
+                    'total_in_queue': total_in_queue,
+                    'payments_received': queue_entry.payments_received if queue_entry.position == 1 else 0,
+                    'max_payments': subscription.plan.max_members
+                })
+            except Queue.DoesNotExist:
+                logger.warning(
+                    f"Subscription not in queue: user={request.user.username}, "
+                    f"subscription_id={subscription.id}"
+                )
+                return Response({
+                    'error': 'Subscription is not in a queue'
+                }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(
+                f"Error fetching queue position: user={request.user.username}, "
+                f"error={str(e)}"
+            )
             return Response({
-                'position': queue_entry.position,
-                'total_in_queue': total_in_queue,
-                'payments_received': queue_entry.payments_received if queue_entry.position == 1 else 0,
-                'max_payments': subscription.plan.max_members
-            })
-        except Queue.DoesNotExist:
-            return Response({
-                'error': 'Subscription is not in a queue'
-            }, status=status.HTTP_404_NOT_FOUND)
+                'error': f"Error fetching queue position: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'])
     def all_queues(self, request):
@@ -132,8 +162,8 @@ class ContributionViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user_subscriptions = Subscription.objects.filter(user=self.request.user)
         return Contribution.objects.filter(
-            models.Q(from_subscription__in=user_subscriptions) |
-            models.Q(to_subscription__in=user_subscriptions)
+            Q(from_subscription__in=user_subscriptions) |
+            Q(to_subscription__in=user_subscriptions)
         )
 
     @action(detail=False, methods=['get'])
@@ -212,32 +242,64 @@ class WalletViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(result)
 
     @action(detail=True, methods=['post'])
-    def deposit(self, request, pk=None):
+    def deposit(self, request: Request, pk: Optional[int] = None) -> Response:
         """
         Deposit funds into a wallet
         """
-        wallet = self.get_object()
-
         try:
-            amount = float(request.data.get('amount', 0))
-            description = request.data.get('description', 'Deposit')
+            wallet = self.get_object()
+            logger.info(
+                f"Processing deposit request: user={request.user.username}, "
+                f"wallet_id={wallet.id}, wallet_type={wallet.wallet_type}"
+            )
 
-            if amount <= 0:
+            try:
+                amount = float(request.data.get('amount', 0))
+                description = request.data.get('description', 'Deposit')
+
+                if amount <= 0:
+                    logger.warning(
+                        f"Invalid deposit amount: user={request.user.username}, "
+                        f"wallet_id={wallet.id}, amount={amount}"
+                    )
+                    return Response({
+                        'error': 'Amount must be positive'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                logger.info(
+                    f"Depositing funds: user={request.user.username}, "
+                    f"wallet_id={wallet.id}, amount=${amount}, description='{description}'"
+                )
+
+                with db_transaction.atomic():
+                    new_balance = wallet.deposit(amount, description)
+
+                logger.info(
+                    f"Deposit successful: user={request.user.username}, "
+                    f"wallet_id={wallet.id}, amount=${amount}, new_balance=${new_balance}"
+                )
+
                 return Response({
-                    'error': 'Amount must be positive'
+                    'success': True,
+                    'new_balance': new_balance,
+                    'message': f'${amount} deposited successfully'
+                })
+            except ValueError as e:
+                logger.warning(
+                    f"Deposit validation error: user={request.user.username}, "
+                    f"wallet_id={wallet.id}, error={str(e)}"
+                )
+                return Response({
+                    'error': str(e)
                 }, status=status.HTTP_400_BAD_REQUEST)
-
-            new_balance = wallet.deposit(amount, description)
-
+        except Exception as e:
+            logger.error(
+                f"Error processing deposit: user={request.user.username}, "
+                f"wallet_id={pk}, error={str(e)}"
+            )
             return Response({
-                'success': True,
-                'new_balance': new_balance,
-                'message': f'${amount} deposited successfully'
-            })
-        except ValueError as e:
-            return Response({
-                'error': str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
+                'error': f"Error processing deposit: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ReferralViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ReferralSerializer
