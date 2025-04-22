@@ -254,8 +254,8 @@ SOCIALACCOUNT_PROVIDERS = {
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development
 
 # AllAuth settings
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_LOGIN_METHODS = {'email'}  # Use email for authentication
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']  # * means required
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # For development, change to 'mandatory' in production
 ACCOUNT_UNIQUE_EMAIL = True
 
@@ -267,6 +267,34 @@ REST_AUTH = {
     'JWT_AUTH_SECURE': not DEBUG,
     'JWT_AUTH_HTTPONLY': True,
     'JWT_AUTH_SAMESITE': 'Lax',
+    
+    # Modern configuration for user registration fields
+    'USER_DETAILS_SERIALIZER': 'users.serializers.UserSerializer',
+    'LOGIN_SERIALIZER': 'users.serializers.CustomTokenObtainPairSerializer',
+    
+    # Registration settings aligned with django-allauth
+    'REGISTER_SERIALIZER': 'users.serializers.RegisterSerializer',
+    'REGISTER_PERMISSION_CLASSES': [],
+    
+    # Modern field configuration aligned with ACCOUNT_SIGNUP_FIELDS
+    'SIGNUP_FIELDS': {
+        'username': {
+            'required': True,
+            'placeholder': 'Username',
+        },
+        'email': {
+            'required': True,
+            'placeholder': 'Email address',
+        },
+        'password1': {
+            'required': True,
+            'placeholder': 'Password',
+        },
+        'password2': {
+            'required': True,
+            'placeholder': 'Confirm password',
+        },
+    },
 }
 
 # Knox settings
