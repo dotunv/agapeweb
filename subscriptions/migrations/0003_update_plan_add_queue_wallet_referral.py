@@ -14,48 +14,54 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Update Plan model
+        # Update SubscriptionPlan model
         migrations.RenameField(
-            model_name='plan',
-            old_name='price',
+            model_name='subscriptionplan',
+            old_name='amount',
             new_name='contribution_amount',
         ),
         migrations.AddField(
-            model_name='plan',
+            model_name='subscriptionplan',
             name='total_received',
             field=models.DecimalField(decimal_places=2, default=0, help_text='Total amount received from members', max_digits=10),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='plan',
+            model_name='subscriptionplan',
             name='deduction_repurchase',
             field=models.DecimalField(decimal_places=2, default=0, help_text='Amount deducted for repurchase (1/13 of contribution)', max_digits=10),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='plan',
+            model_name='subscriptionplan',
             name='deduction_maintenance',
             field=models.DecimalField(decimal_places=2, default=0, help_text='Amount deducted for maintenance (2/13 of contribution)', max_digits=10),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='plan',
+            model_name='subscriptionplan',
             name='withdrawable_amount',
             field=models.DecimalField(decimal_places=2, default=0, help_text='Amount available for withdrawal after deductions', max_digits=10),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='plan',
+            model_name='subscriptionplan',
             name='next_plan',
-            field=models.ForeignKey(blank=True, help_text='Next plan to upgrade to (if applicable)', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='previous_plans', to='subscriptions.plan'),
+            field=models.ForeignKey(blank=True, help_text='Next plan to upgrade to (if applicable)', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='previous_plans', to='subscriptions.subscriptionplan'),
+        ),
+        migrations.AddField(
+            model_name='subscriptionplan',
+            name='max_members',
+            field=models.IntegerField(default=8),
+            preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='plan',
+            model_name='subscriptionplan',
             name='max_members',
             field=models.IntegerField(help_text='Number of members needed to complete the queue (8 or 13)'),
         ),
         migrations.AlterModelOptions(
-            name='plan',
+            name='subscriptionplan',
             options={'ordering': ['contribution_amount']},
         ),
         
@@ -68,7 +74,7 @@ class Migration(migrations.Migration):
                 ('payments_received', models.PositiveIntegerField(default=0, help_text='Number of payments received while at position #1')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('plan', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='queues', to='subscriptions.plan')),
+                ('plan', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='queues', to='subscriptions.subscriptionplan')),
                 ('subscription', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='queue_entry', to='subscriptions.subscription')),
             ],
             options={
@@ -86,7 +92,7 @@ class Migration(migrations.Migration):
                 ('balance', models.DecimalField(decimal_places=2, default=0, max_digits=12)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('plan', models.ForeignKey(blank=True, help_text='Only applicable for PLAN wallet type', null=True, on_delete=django.db.models.deletion.CASCADE, to='subscriptions.plan')),
+                ('plan', models.ForeignKey(blank=True, help_text='Only applicable for PLAN wallet type', null=True, on_delete=django.db.models.deletion.CASCADE, to='subscriptions.subscriptionplan')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='wallets', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -108,10 +114,5 @@ class Migration(migrations.Migration):
             options={
                 'unique_together': {('referrer', 'referred_user', 'subscription')},
             },
-        ),
-        
-        # Remove Withdrawal model
-        migrations.DeleteModel(
-            name='Withdrawal',
         ),
     ]

@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     'core',
     'drf_spectacular',
     'django_extensions',
-    'django_migrations_graph',
+    'migraph',
 ]
 
 MIDDLEWARE = [
