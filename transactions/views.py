@@ -1,76 +1,60 @@
-from django.shortcuts import render
-from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import ListView, DetailView, CreateView
+from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
+from django.http import JsonResponse
 from .models import Transaction, Withdrawal
-from .serializers import TransactionSerializer, WithdrawalSerializer
-from typing import Type, List, Dict, Any, Optional, Union
-from rest_framework.request import Request
-from rest_framework.serializers import BaseSerializer
+from .forms import WithdrawalForm
 import logging
 
 # Get a logger for this module
 logger = logging.getLogger('agape.transactions')
 
-# Create your views here.
+class TransactionListView(LoginRequiredMixin, ListView):
+    """View for listing user's transactions."""
+    model = Transaction
+    template_name = 'transactions/transaction_list.html'
+    context_object_name = 'transactions'
+    paginate_by = 20
 
-class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for viewing transaction records.
-
-    This viewset provides read-only access to transaction records belonging to the
-    authenticated user. It does not allow creating, updating, or deleting transactions.
-    """
-    serializer_class = TransactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self) -> List[Transaction]:
-        """
-        Get the list of transactions for the authenticated user.
-
-        Returns:
-            List[Transaction]: A queryset of transactions belonging to the current user
-        """
+    def get_queryset(self):
         return Transaction.objects.filter(user=self.request.user)
 
-class WithdrawalViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing withdrawal requests.
+class TransactionDetailView(LoginRequiredMixin, DetailView):
+    """View for showing transaction details."""
+    model = Transaction
+    template_name = 'transactions/transaction_detail.html'
+    context_object_name = 'transaction'
 
-    This viewset provides full CRUD operations for withdrawal requests, with additional
-    actions for approving and rejecting withdrawals. Only staff members can approve
-    or reject withdrawals.
-    """
-    serializer_class = WithdrawalSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def get_queryset(self):
+        return Transaction.objects.filter(user=self.request.user)
 
-    def get_queryset(self) -> List[Withdrawal]:
-        """
-        Get the list of withdrawals for the authenticated user.
+class WithdrawalListView(LoginRequiredMixin, ListView):
+    """View for listing user's withdrawals."""
+    model = Withdrawal
+    template_name = 'transactions/withdrawal_list.html'
+    context_object_name = 'withdrawals'
+    paginate_by = 20
 
-        Returns:
-            List[Withdrawal]: A queryset of withdrawals belonging to the current user
-        """
+    def get_queryset(self):
         return Withdrawal.objects.filter(user=self.request.user)
 
-    def perform_create(self, serializer: BaseSerializer) -> None:
-        """
-        Create a new withdrawal request and associated transaction record.
+class WithdrawalCreateView(LoginRequiredMixin, CreateView):
+    """View for creating a new withdrawal request."""
+    model = Withdrawal
+    form_class = WithdrawalForm
+    template_name = 'transactions/withdrawal_form.html'
+    success_url = '/transactions/withdrawals/'
 
-        This method is called when a new withdrawal request is created. It creates
-        a transaction record for the withdrawal and associates it with the user.
-
-        Args:
-            serializer: The serializer instance that validated the request data
-
-        Returns:
-            None
-        """
+    def form_valid(self, form):
         try:
             with transaction.atomic():
-                withdrawal = serializer.save(user=self.request.user)
+                withdrawal = form.save(commit=False)
+                withdrawal.user = self.request.user
+                withdrawal.save()
 
                 # Create transaction record
                 Transaction.objects.create(
@@ -85,155 +69,82 @@ class WithdrawalViewSet(viewsets.ModelViewSet):
                     f"Withdrawal request created: user={self.request.user.username}, "
                     f"amount=${withdrawal.amount}, type={withdrawal.withdrawal_type}"
                 )
+                messages.success(self.request, 'Withdrawal request submitted successfully!')
+                return super().form_valid(form)
         except Exception as e:
             logger.error(
                 f"Error creating withdrawal request: user={self.request.user.username}, "
                 f"error={str(e)}"
             )
-            raise
+            messages.error(self.request, f'Error creating withdrawal request: {str(e)}')
+            return super().form_invalid(form)
 
-    @action(detail=True, methods=['post'])
-    def approve(self, request: Request, pk: Optional[int] = None) -> Response:
-        """
-        Approve a withdrawal request.
+@user_passes_test(lambda u: u.is_staff)
+def approve_withdrawal(request, pk):
+    """View for staff to approve a withdrawal request."""
+    withdrawal = get_object_or_404(Withdrawal, pk=pk)
 
-        This action is only available to staff members. It changes the status of the
-        withdrawal to 'APPROVED' and updates the associated transaction status.
-
-        Args:
-            request: The HTTP request
-            pk: The primary key of the withdrawal to approve
-
-        Returns:
-            Response: The serialized withdrawal data
-
-        Raises:
-            HTTP 403: If the user is not a staff member
-        """
-        if not request.user.is_staff:
-            logger.warning(
-                f"Unauthorized approval attempt: user={request.user.username}, "
-                f"withdrawal_id={pk}"
+    try:
+        if withdrawal.status != 'PENDING':
+            messages.error(
+                request,
+                f"Cannot approve withdrawal with status {withdrawal.status}"
             )
-            return Response(
-                {"error": "Only staff members can approve withdrawals"},
-                status=status.HTTP_403_FORBIDDEN
+            return redirect('transactions:withdrawal_detail', pk=pk)
+
+        with transaction.atomic():
+            withdrawal.status = 'APPROVED'
+            withdrawal.processed_at = timezone.now()
+            withdrawal.save()
+
+            # Update transaction status
+            withdrawal.transaction.status = 'COMPLETED'
+            withdrawal.transaction.completed_at = timezone.now()
+            withdrawal.transaction.save()
+
+        logger.info(
+            f"Withdrawal approved: id={withdrawal.id}, user={withdrawal.user.username}, "
+            f"amount=${withdrawal.amount}"
+        )
+        messages.success(request, 'Withdrawal request approved successfully!')
+
+    except Exception as e:
+        logger.error(f"Error approving withdrawal: id={pk}, error={str(e)}")
+        messages.error(request, f'Error approving withdrawal: {str(e)}')
+
+    return redirect('transactions:withdrawal_detail', pk=pk)
+
+@user_passes_test(lambda u: u.is_staff)
+def reject_withdrawal(request, pk):
+    """View for staff to reject a withdrawal request."""
+    withdrawal = get_object_or_404(Withdrawal, pk=pk)
+
+    try:
+        if withdrawal.status != 'PENDING':
+            messages.error(
+                request,
+                f"Cannot reject withdrawal with status {withdrawal.status}"
             )
+            return redirect('transactions:withdrawal_detail', pk=pk)
 
-        try:
-            withdrawal = self.get_object()
+        with transaction.atomic():
+            withdrawal.status = 'REJECTED'
+            withdrawal.processed_at = timezone.now()
+            withdrawal.save()
 
-            # Log the initial state
-            logger.info(
-                f"Approving withdrawal: id={withdrawal.id}, user={withdrawal.user.username}, "
-                f"amount=${withdrawal.amount}, current_status={withdrawal.status}"
-            )
+            # Update transaction status
+            withdrawal.transaction.status = 'FAILED'
+            withdrawal.transaction.completed_at = timezone.now()
+            withdrawal.transaction.save()
 
-            if withdrawal.status != 'PENDING':
-                logger.warning(
-                    f"Cannot approve withdrawal with status {withdrawal.status}: "
-                    f"id={withdrawal.id}, user={withdrawal.user.username}"
-                )
-                return Response(
-                    {"error": f"Cannot approve withdrawal with status {withdrawal.status}"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+        logger.info(
+            f"Withdrawal rejected: id={withdrawal.id}, user={withdrawal.user.username}, "
+            f"amount=${withdrawal.amount}"
+        )
+        messages.success(request, 'Withdrawal request rejected.')
 
-            with transaction.atomic():
-                withdrawal.status = 'APPROVED'
-                withdrawal.processed_at = timezone.now()
-                withdrawal.save()
+    except Exception as e:
+        logger.error(f"Error rejecting withdrawal: id={pk}, error={str(e)}")
+        messages.error(request, f'Error rejecting withdrawal: {str(e)}')
 
-                # Update transaction status
-                withdrawal.transaction.status = 'COMPLETED'
-                withdrawal.transaction.completed_at = timezone.now()
-                withdrawal.transaction.save()
-
-            logger.info(
-                f"Withdrawal approved: id={withdrawal.id}, user={withdrawal.user.username}, "
-                f"amount=${withdrawal.amount}"
-            )
-
-            return Response(WithdrawalSerializer(withdrawal).data)
-
-        except Exception as e:
-            logger.error(
-                f"Error approving withdrawal: id={pk}, error={str(e)}"
-            )
-            return Response(
-                {"error": f"Error approving withdrawal: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @action(detail=True, methods=['post'])
-    def reject(self, request: Request, pk: Optional[int] = None) -> Response:
-        """
-        Reject a withdrawal request.
-
-        This action is only available to staff members. It changes the status of the
-        withdrawal to 'REJECTED' and updates the associated transaction status.
-
-        Args:
-            request: The HTTP request
-            pk: The primary key of the withdrawal to reject
-
-        Returns:
-            Response: The serialized withdrawal data
-
-        Raises:
-            HTTP 403: If the user is not a staff member
-        """
-        if not request.user.is_staff:
-            logger.warning(
-                f"Unauthorized rejection attempt: user={request.user.username}, "
-                f"withdrawal_id={pk}"
-            )
-            return Response(
-                {"error": "Only staff members can reject withdrawals"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        try:
-            withdrawal = self.get_object()
-
-            # Log the initial state
-            logger.info(
-                f"Rejecting withdrawal: id={withdrawal.id}, user={withdrawal.user.username}, "
-                f"amount=${withdrawal.amount}, current_status={withdrawal.status}"
-            )
-
-            if withdrawal.status != 'PENDING':
-                logger.warning(
-                    f"Cannot reject withdrawal with status {withdrawal.status}: "
-                    f"id={withdrawal.id}, user={withdrawal.user.username}"
-                )
-                return Response(
-                    {"error": f"Cannot reject withdrawal with status {withdrawal.status}"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            with transaction.atomic():
-                withdrawal.status = 'REJECTED'
-                withdrawal.processed_at = timezone.now()
-                withdrawal.save()
-
-                # Update transaction status
-                withdrawal.transaction.status = 'FAILED'
-                withdrawal.transaction.completed_at = timezone.now()
-                withdrawal.transaction.save()
-
-            logger.info(
-                f"Withdrawal rejected: id={withdrawal.id}, user={withdrawal.user.username}, "
-                f"amount=${withdrawal.amount}"
-            )
-
-            return Response(WithdrawalSerializer(withdrawal).data)
-
-        except Exception as e:
-            logger.error(
-                f"Error rejecting withdrawal: id={pk}, error={str(e)}"
-            )
-            return Response(
-                {"error": f"Error rejecting withdrawal: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+    return redirect('transactions:withdrawal_detail', pk=pk)

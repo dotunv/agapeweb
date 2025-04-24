@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account - AgapeThrift{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <img src="{% static 'images/logo.svg' %}" alt="AgapeThrift Logo" class="auth-logo">
+            <h1>Welcome to AgapeThrift</h1>
+            <p>Let's get you started</p>
+        </div>
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="Enter Username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="Enter Email Address" required>
+            </div>
+
+            <div class="form-group">
+                <label for="referral_code" class="form-label">Referral Code</label>
+                <input type="text" id="referral_code" name="referral_code" class="form-control" placeholder="Optional">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <div class="password-input">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter Password" required>
+                    <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                        <img src="{% static 'images/icons/eye.svg' %}" alt="Show password">
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password" class="form-label">Confirm Password</label>
+                <div class="password-input">
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirm Password" required>
+                    <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                        <img src="{% static 'images/icons/eye.svg' %}" alt="Show password">
+                    </button>
+                </div>
+            </div>
+
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary btn-block">Create An Account</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Already a member? <a href="{% url 'login' %}">Log In</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-md);
+        background-color: #F5F5F5;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-xl);
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .auth-logo {
+        width: 120px;
+        height: auto;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .auth-header h1 {
+        font-size: 1.5rem;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .auth-header p {
+        color: var(--text-light);
+    }
+
+    .auth-form {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .password-input {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: var(--spacing-sm);
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        padding: var(--spacing-xs);
+        cursor: pointer;
+    }
+
+    .password-toggle img {
+        width: 20px;
+        height: 20px;
+        opacity: 0.5;
+        transition: opacity var(--transition-fast);
+    }
+
+    .password-toggle:hover img {
+        opacity: 1;
+    }
+
+    .btn-block {
+        width: 100%;
+        margin-top: var(--spacing-lg);
+    }
+
+    .auth-footer {
+        text-align: center;
+        color: var(--text-light);
+    }
+
+    .auth-footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .alert {
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius-md);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .alert-danger {
+        background-color: #FEE2E2;
+        color: #DC2626;
+        border: 1px solid #FCA5A5;
+    }
+
+    @media (max-width: 480px) {
+        .auth-card {
+            padding: var(--spacing-lg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButtons = document.querySelectorAll('.password-toggle');
+    
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
+            
+            // Update icon based on password visibility
+            const img = this.querySelector('img');
+            img.src = type === 'password' 
+                ? "{% static 'images/icons/eye.svg' %}"
+                : "{% static 'images/icons/eye-off.svg' %}";
+        });
+    });
+});
+</script>
+{% endblock %} 

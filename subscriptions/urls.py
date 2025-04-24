@@ -1,15 +1,24 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from . import views
 
-router = DefaultRouter()
-router.register(r'plans', views.SubscriptionPlanViewSet)
-router.register(r'subscriptions', views.SubscriptionViewSet, basename='subscription')
-router.register(r'contributions', views.ContributionViewSet, basename='contribution')
-router.register(r'queues', views.QueueViewSet, basename='queue')
-router.register(r'wallets', views.WalletViewSet, basename='wallet')
-router.register(r'referrals', views.ReferralViewSet, basename='referral')
+app_name = 'subscriptions'
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # Plans
+    path('plans/', views.PlanListView.as_view(), name='plan_list'),
+    path('plans/<int:pk>/', views.PlanDetailView.as_view(), name='plan_detail'),
+    path('plans/<int:plan_id>/subscribe/', views.subscribe, name='subscribe'),
+    
+    # Subscriptions
+    path('my-subscription/', views.my_subscription, name='my_subscription'),
+    path('queue-status/', views.queue_status, name='queue_status'),
+    
+    # Contributions
+    path('contributions/', views.ContributionListView.as_view(), name='contribution_list'),
+    
+    # Wallet
+    path('wallet/', views.wallet_overview, name='wallet_overview'),
+    
+    # Referrals
+    path('referrals/', views.referral_overview, name='referral_overview'),
 ]

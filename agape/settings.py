@@ -47,8 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'rest_framework',
-    'corsheaders',
+    # 'rest_framework',
+    # 'corsheaders',
     'knox',
     'users',
     'subscriptions',
@@ -57,10 +57,6 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'dj_rest_auth',
-    'dj_rest_auth.registration',
-    'rest_framework_simplejwt',
-    'rest_framework.authtoken',
     'core',
     'drf_spectacular',
     'django_extensions',
@@ -225,10 +221,12 @@ SIMPLE_JWT = {
 }
 
 # AllAuth settings
-AUTHENTICATION_BACKENDS = (
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by e-mail
     'allauth.account.auth_backends.AuthenticationBackend',
-)
+]
 
 SITE_ID = 1
 
@@ -239,25 +237,25 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': env('GOOGLE_CLIENT_ID', default=''),
             'secret': env('GOOGLE_CLIENT_SECRET', default=''),
             'key': ''
-        },
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
         }
     }
 }
 
-# Email settings (required for allauth)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development
+# Email settings (for development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# AllAuth settings
+# allauth settings
 ACCOUNT_LOGIN_METHODS = {'email'}  # Use email for authentication
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']  # * means required
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # For development, change to 'mandatory' in production
 ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': {'calls': 5, 'timeout': 300},  # 5 attempts, 5 minutes timeout
+}
+
+LOGIN_REDIRECT_URL = 'frontend:dashboard'
+LOGOUT_REDIRECT_URL = 'frontend:home'
+LOGIN_URL = 'account_login'
 
 # Rest Auth settings
 REST_AUTH = {
@@ -311,28 +309,19 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
 ])
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Session settings
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_COOKIE_SECURE = not DEBUG
+
 # Security settings
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-else:
-    # Disable SSL/HTTPS in development
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    SECURE_BROWSER_XSS_FILTER = False
-    SECURE_CONTENT_TYPE_NOSNIFF = False
-    X_FRAME_OPTIONS = 'SAMEORIGIN'
-    SECURE_HSTS_SECONDS = 0
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-    SECURE_HSTS_PRELOAD = False
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Admin customization
 ADMIN_SITE_HEADER = "Agape Administration"

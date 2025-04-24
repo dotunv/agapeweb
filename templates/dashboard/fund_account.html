@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+
+{% block title %}Fund Account - AgapeThrift{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-grid">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="{% static 'images/logo.svg' %}" alt="AgapeThrift Logo" class="sidebar-logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/dashboard.svg' %}" alt="">
+                    </span>
+                    Dashboard
+                </a>
+                
+                <a href="{% url 'fund_account' %}" class="nav-item active">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/wallet.svg' %}" alt="">
+                    </span>
+                    Fund account
+                </a>
+                
+                <a href="{% url 'plans' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/diamond.svg' %}" alt="">
+                    </span>
+                    Plans
+                </a>
+                
+                <a href="{% url 'subscriptions' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/subscription.svg' %}" alt="">
+                    </span>
+                    Subscriptions
+                </a>
+                
+                <a href="{% url 'referrals' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/users.svg' %}" alt="">
+                    </span>
+                    Referrals
+                </a>
+                
+                <a href="{% url 'notifications' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/bell.svg' %}" alt="">
+                    </span>
+                    Notifications
+                </a>
+                
+                <a href="{% url 'withdrawal' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/withdraw.svg' %}" alt="">
+                    </span>
+                    Withdrawal
+                </a>
+                
+                <a href="{% url 'profile' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/user.svg' %}" alt="">
+                    </span>
+                    Profile
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="{% url 'logout' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/logout.svg' %}" alt="">
+                    </span>
+                    Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <h1>Fund Account</h1>
+                <div class="header-actions">
+                    <div class="notifications-bell">
+                        <img src="{% static 'images/icons/bell.svg' %}" alt="Notifications">
+                        {% if unread_notifications_count %}
+                        <span class="notification-badge">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="user-profile">
+                        <img src="{{ user.profile_image.url|default:'static/images/default-avatar.png' }}" alt="Profile" class="profile-image">
+                    </div>
+                </div>
+            </header>
+
+            <div class="fund-account-container">
+                <div class="card">
+                    <h2>Add Funds</h2>
+                    <p class="text-muted">Choose an amount to add to your account</p>
+
+                    <form method="post" class="fund-form">
+                        {% csrf_token %}
+                        
+                        <div class="amount-options">
+                            <button type="button" class="amount-option" data-amount="100">$100</button>
+                            <button type="button" class="amount-option" data-amount="500">$500</button>
+                            <button type="button" class="amount-option" data-amount="1000">$1,000</button>
+                            <button type="button" class="amount-option" data-amount="5000">$5,000</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="amount" class="form-label">Custom Amount</label>
+                            <div class="amount-input">
+                                <span class="currency-symbol">$</span>
+                                <input type="number" id="amount" name="amount" class="form-control" placeholder="Enter amount" min="1" step="0.01" required>
+                            </div>
+                        </div>
+
+                        <div class="payment-methods">
+                            <h3>Payment Method</h3>
+                            <div class="payment-options">
+                                <label class="payment-option">
+                                    <input type="radio" name="payment_method" value="card" checked>
+                                    <span class="payment-option-content">
+                                        <img src="{% static 'images/icons/credit-card.svg' %}" alt="Credit Card">
+                                        <span>Credit/Debit Card</span>
+                                    </span>
+                                </label>
+                                
+                                <label class="payment-option">
+                                    <input type="radio" name="payment_method" value="bank">
+                                    <span class="payment-option-content">
+                                        <img src="{% static 'images/icons/bank.svg' %}" alt="Bank Transfer">
+                                        <span>Bank Transfer</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Proceed to Payment</button>
+                    </form>
+                </div>
+
+                <div class="card mt-4">
+                    <h3>Recent Transactions</h3>
+                    <div class="transactions-list">
+                        {% for transaction in recent_transactions %}
+                        <div class="transaction-item">
+                            <div class="transaction-info">
+                                <div class="transaction-type">{{ transaction.get_type_display }}</div>
+                                <div class="transaction-date">{{ transaction.created_at|date:"d M, Y" }}</div>
+                            </div>
+                            <div class="transaction-amount {% if transaction.type == 'deposit' %}text-success{% else %}text-danger{% endif %}">
+                                {{ transaction.type|yesno:"+,-" }}${{ transaction.amount|floatformat:2 }}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">No recent transactions</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fund-account-container {
+        padding: var(--spacing-lg);
+    }
+
+    .amount-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .amount-option {
+        background: none;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: var(--spacing-md);
+        border-radius: var(--border-radius-md);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .amount-option:hover,
+    .amount-option.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .amount-input {
+        position: relative;
+    }
+
+    .currency-symbol {
+        position: absolute;
+        left: var(--spacing-md);
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+    }
+
+    .amount-input .form-control {
+        padding-left: calc(var(--spacing-md) * 2);
+    }
+
+    .payment-methods {
+        margin: var(--spacing-lg) 0;
+    }
+
+    .payment-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-md);
+    }
+
+    .payment-option {
+        cursor: pointer;
+    }
+
+    .payment-option input[type="radio"] {
+        display: none;
+    }
+
+    .payment-option-content {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        transition: all var(--transition-fast);
+    }
+
+    .payment-option input[type="radio"]:checked + .payment-option-content {
+        border-color: var(--primary-color);
+        background-color: #F0FDF4;
+    }
+
+    .payment-option-content img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .transactions-list {
+        margin-top: var(--spacing-md);
+    }
+
+    .transaction-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-md) 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .transaction-item:last-child {
+        border-bottom: none;
+    }
+
+    .transaction-type {
+        font-weight: 500;
+    }
+
+    .transaction-date {
+        font-size: 0.875rem;
+        color: var(--text-light);
+    }
+
+    .text-success {
+        color: #10B981;
+    }
+
+    .text-danger {
+        color: #EF4444;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const amountOptions = document.querySelectorAll('.amount-option');
+    const amountInput = document.getElementById('amount');
+
+    amountOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove active class from all options
+            amountOptions.forEach(opt => opt.classList.remove('active'));
+            // Add active class to clicked option
+            this.classList.add('active');
+            // Set amount in input
+            amountInput.value = this.dataset.amount;
+        });
+    });
+});
+</script>
+{% endblock %} 

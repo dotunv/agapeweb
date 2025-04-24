@@ -1,0 +1,5 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 0L0 20L20 40L40 20L20 0Z" fill="#00A651"/>
+    <path d="M50 10H45L55 30H60L50 10Z" fill="#FF0000"/>
+    <text x="65" y="25" font-family="Inter" font-size="20" font-weight="700" fill="#333333">Agape</text>
+</svg> 

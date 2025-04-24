@@ -19,44 +19,23 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
-from knox.views import LogoutView, LogoutAllView
-from rest_framework import permissions
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularSwaggerView,
-    SpectacularRedocView,
-)
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from dj_rest_auth.registration.views import SocialLoginView
 
 from agape.admin import admin_site
 
-def redirect_to_docs(request):
-    return redirect('swagger-ui')
-
 urlpatterns = [
-    path('', redirect_to_docs, name='home'),
+    # Frontend URLs
+    path('', include('frontend.urls')),
+    
+    # Admin
     path('admin/', admin_site.urls),
     
-    # API Documentation
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    # Authentication URLs
+    path('accounts/', include('allauth.urls')),
     
-    
-    # Core API Routes
-    path('api/', include('core.urls')),
-    
-    # Authentication
-    path('api/auth/', include('users.urls')),
-    path('api/auth/logout/', LogoutView.as_view(), name='knox_logout'),
-    path('api/auth/logoutall/', LogoutAllView.as_view(), name='knox_logoutall'),
-    
-    # API Routes
-    path('api/users/', include('users.urls')),
-    path('api/subscriptions/', include('subscriptions.urls')),
-    path('api/transactions/', include('transactions.urls')),
+    # App URLs
+    path('users/', include('users.urls')),
+    path('subscriptions/', include('subscriptions.urls')),
+    path('transactions/', include('transactions.urls')),
 ]
 
 # Debug Toolbar URLs (must be before static/media URLs)

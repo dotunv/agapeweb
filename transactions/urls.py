@@ -1,11 +1,16 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import TransactionViewSet, WithdrawalViewSet
+from django.urls import path
+from . import views
 
-router = DefaultRouter()
-router.register(r'transactions', TransactionViewSet, basename='transaction')
-router.register(r'withdrawals', WithdrawalViewSet, basename='withdrawal')
+app_name = 'transactions'
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # Transactions
+    path('', views.TransactionListView.as_view(), name='transaction_list'),
+    path('<int:pk>/', views.TransactionDetailView.as_view(), name='transaction_detail'),
+    
+    # Withdrawals
+    path('withdrawals/', views.WithdrawalListView.as_view(), name='withdrawal_list'),
+    path('withdrawals/new/', views.WithdrawalCreateView.as_view(), name='withdrawal_create'),
+    path('withdrawals/<int:pk>/approve/', views.approve_withdrawal, name='withdrawal_approve'),
+    path('withdrawals/<int:pk>/reject/', views.reject_withdrawal, name='withdrawal_reject'),
 ] 

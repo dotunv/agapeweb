@@ -1,0 +1,425 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - AgapeThrift{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-grid">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="{% static 'images/logo.svg' %}" alt="AgapeThrift Logo" class="sidebar-logo">
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard' %}" class="nav-item active">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/dashboard.svg' %}" alt="">
+                    </span>
+                    Dashboard
+                </a>
+                
+                <a href="{% url 'fund_account' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/wallet.svg' %}" alt="">
+                    </span>
+                    Fund account
+                </a>
+                
+                <a href="{% url 'plans' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/diamond.svg' %}" alt="">
+                    </span>
+                    Plans
+                </a>
+                
+                <a href="{% url 'subscriptions' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/subscription.svg' %}" alt="">
+                    </span>
+                    Subscriptions
+                </a>
+                
+                <a href="{% url 'referrals' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/users.svg' %}" alt="">
+                    </span>
+                    Referrals
+                </a>
+                
+                <a href="{% url 'notifications' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/bell.svg' %}" alt="">
+                    </span>
+                    Notifications
+                </a>
+                
+                <a href="{% url 'withdrawal' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/withdraw.svg' %}" alt="">
+                    </span>
+                    Withdrawal
+                </a>
+                
+                <a href="{% url 'profile' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/user.svg' %}" alt="">
+                    </span>
+                    Profile
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="{% url 'logout' %}" class="nav-item">
+                    <span class="nav-icon">
+                        <img src="{% static 'images/icons/logout.svg' %}" alt="">
+                    </span>
+                    Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <h1>Dashboard</h1>
+                <div class="header-actions">
+                    <a href="{% url 'how_it_works' %}" class="header-link">How it Works</a>
+                    <div class="notifications-bell">
+                        <img src="{% static 'images/icons/bell.svg' %}" alt="Notifications">
+                        {% if unread_notifications_count %}
+                        <span class="notification-badge">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="user-profile">
+                        <img src="{{ user.profile_image.url|default:'static/images/default-avatar.png' }}" alt="Profile" class="profile-image">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Balance Card -->
+            <div class="balance-card">
+                <div class="balance-info">
+                    <h2>Current Balance</h2>
+                    <div class="balance-amount">${{ balance|floatformat:2 }}</div>
+                    <div class="balance-meta">Username: {{ user.username }}</div>
+                </div>
+            </div>
+
+            <!-- Current Plan -->
+            <div class="current-plan">
+                <div class="plan-header">
+                    <h2>Current Plan</h2>
+                    <span class="plan-badge">Basic 1</span>
+                </div>
+                <div class="plan-progress">
+                    <div class="progress-text">1/3</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 33%"></div>
+                    </div>
+                    <div class="progress-meta">To withdraw earnings, all cycles must be completed</div>
+                </div>
+                <div class="plan-status">Status: Active</div>
+            </div>
+
+            <!-- Recent Subscriptions -->
+            <div class="recent-subscriptions">
+                <div class="section-header">
+                    <h2>Recent Subscription</h2>
+                    <a href="{% url 'subscriptions' %}" class="view-all">View all</a>
+                </div>
+                <div class="subscription-list">
+                    {% for subscription in recent_subscriptions %}
+                    <div class="subscription-item">
+                        <div class="subscription-info">
+                            <div class="subscriber-name">{{ subscription.user.username }}</div>
+                            <div class="subscription-date">{{ subscription.created_at|date:"d M, Y" }}</div>
+                        </div>
+                        <div class="subscription-amount">+${{ subscription.amount }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Available Plans -->
+            <div class="available-plans">
+                <h2>Plans</h2>
+                <div class="plans-grid">
+                    {% for plan in available_plans %}
+                    <div class="plan-card">
+                        <div class="plan-name">{{ plan.name }}</div>
+                        <div class="plan-price">${{ plan.price }}/person</div>
+                        <a href="{% url 'subscribe' plan.id %}" class="btn btn-outline">Subscribe</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard Layout */
+    .dashboard {
+        padding-top: 0;
+        min-height: 100vh;
+        background-color: #F5F5F5;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        background-color: var(--primary-color);
+        color: white;
+        padding: var(--spacing-lg) 0;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-header {
+        padding: 0 var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .sidebar-logo {
+        height: 40px;
+        width: auto;
+    }
+
+    .sidebar-nav {
+        flex: 1;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-md) var(--spacing-lg);
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: all var(--transition-fast);
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .nav-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: var(--spacing-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-icon img {
+        width: 20px;
+        height: 20px;
+        opacity: 0.8;
+    }
+
+    /* Dashboard Header */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-lg);
+        background-color: white;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-lg);
+    }
+
+    .header-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .notifications-bell {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: var(--secondary-color);
+        color: white;
+        font-size: 0.75rem;
+        padding: 2px 6px;
+        border-radius: 10px;
+    }
+
+    .profile-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    /* Balance Card */
+    .balance-card {
+        background-color: var(--primary-color);
+        color: white;
+        padding: var(--spacing-lg);
+        border-radius: var(--border-radius-lg);
+        margin: var(--spacing-lg);
+    }
+
+    .balance-amount {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: var(--spacing-sm) 0;
+    }
+
+    .balance-meta {
+        opacity: 0.8;
+        font-size: 0.875rem;
+    }
+
+    /* Current Plan */
+    .current-plan {
+        background-color: white;
+        padding: var(--spacing-lg);
+        border-radius: var(--border-radius-lg);
+        margin: var(--spacing-lg);
+    }
+
+    .plan-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .plan-badge {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+
+    .progress-bar {
+        height: 8px;
+        background-color: #E5E5E5;
+        border-radius: 4px;
+        margin: var(--spacing-sm) 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background-color: var(--primary-color);
+        border-radius: 4px;
+    }
+
+    .progress-meta {
+        font-size: 0.875rem;
+        color: var(--text-light);
+    }
+
+    /* Recent Subscriptions */
+    .recent-subscriptions {
+        background-color: white;
+        padding: var(--spacing-lg);
+        border-radius: var(--border-radius-lg);
+        margin: var(--spacing-lg);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .view-all {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
+
+    .subscription-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-md) 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .subscription-item:last-child {
+        border-bottom: none;
+    }
+
+    .subscriber-name {
+        font-weight: 500;
+    }
+
+    .subscription-date {
+        font-size: 0.875rem;
+        color: var(--text-light);
+    }
+
+    .subscription-amount {
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+
+    /* Available Plans */
+    .available-plans {
+        padding: var(--spacing-lg);
+    }
+
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-lg);
+        margin-top: var(--spacing-lg);
+    }
+
+    .plan-card {
+        background-color: white;
+        padding: var(--spacing-lg);
+        border-radius: var(--border-radius-lg);
+        text-align: center;
+    }
+
+    .plan-name {
+        font-weight: 500;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .plan-price {
+        color: var(--text-light);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+            display: none;
+        }
+    }
+</style>
+{% endblock %} 

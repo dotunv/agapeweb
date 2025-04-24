@@ -1,79 +1,61 @@
-from django.shortcuts import render
-from rest_framework import viewsets, permissions, status, generics
-from rest_framework.decorators import action
-from rest_framework.response import Response
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.views.generic import CreateView, UpdateView, ListView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
-from .serializers import (
-    UserSerializer,
-    RegisterSerializer,
-    CustomTokenObtainPairSerializer,
-    GoogleLoginSerializer
-)
-from knox.models import AuthToken
-from rest_framework_simplejwt.views import TokenObtainPairView
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from dj_rest_auth.registration.views import SocialLoginView
+from .forms import UserRegistrationForm, UserUpdateForm
 
 User = get_user_model()
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+def register(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Registration successful!')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = UserRegistrationForm()
+    return render(request, 'users/register.html', {'form': form})
 
-    def get_permissions(self):
-        if self.action == 'create':
-            return [permissions.AllowAny()]
-        return super().get_permissions()
+@login_required
+def profile(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated!')
+            return redirect('profile')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = UserUpdateForm(instance=request.user)
+    
+    context = {
+        'form': form,
+        'user': request.user
+    }
+    return render(request, 'users/profile.html', context)
 
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return RegisterSerializer
-        return self.serializer_class
+@login_required
+def referrals(request):
+    referrals = User.objects.filter(referred_by=request.user)
+    context = {
+        'referrals': referrals,
+        'referral_count': referrals.count()
+    }
+    return render(request, 'users/referrals.html', context)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        
-        # Create token for the new user
-        token = AuthToken.objects.create(user)[1]
-        
-        return Response({
-            'user': UserSerializer(user).data,
-            'token': token
-        }, status=status.HTTP_201_CREATED)
-
-    @action(detail=False, methods=['get'])
-    def me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'])
-    def referrals(self, request):
-        referrals = User.objects.filter(referred_by=request.user)
-        serializer = self.get_serializer(referrals, many=True)
-        return Response(serializer.data)
-
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = (permissions.AllowAny,)
-    serializer_class = RegisterSerializer
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
-
-class GoogleLoginView(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
-    callback_url = "postmessage"
-    client_class = OAuth2Client
-    serializer_class = GoogleLoginSerializer
-
-class UserDetailView(generics.RetrieveUpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+class UserDetailView(LoginRequiredMixin, DetailView):
+    model = User
+    template_name = 'users/user_detail.html'
+    context_object_name = 'user_profile'
 
     def get_object(self):
         return self.request.user

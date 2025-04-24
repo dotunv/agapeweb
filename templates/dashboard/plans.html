@@ -1,0 +1,450 @@
+{% extends 'dashboard/base.html' %}
+
+{% block content %}
+<div class="plans-container">
+    <div class="plans-header">
+        <h1>Investment Plans</h1>
+        <p>Choose your plan and start your investment journey</p>
+    </div>
+
+    <div class="plans-grid">
+        <!-- Pre-Starter Plan -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <h2>Pre-Starter Plan</h2>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">10</span>
+                </div>
+            </div>
+            <div class="plan-details">
+                <div class="total-received">
+                    <span class="label">Total Received:</span>
+                    <span class="value">$80 (from 8 members)</span>
+                </div>
+                <div class="deductions">
+                    <span class="label">Deductions:</span>
+                    <ul>
+                        <li>$25 for starter</li>
+                        <li>$30 maintenance</li>
+                    </ul>
+                </div>
+                <div class="available">
+                    <span class="label">Available for Withdrawal:</span>
+                    <span class="value">$25</span>
+                </div>
+            </div>
+            <button class="plan-button">Choose Plan</button>
+        </div>
+
+        <!-- Starter Plan -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <h2>Starter Plan</h2>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">25</span>
+                </div>
+            </div>
+            <div class="plan-details">
+                <div class="total-received">
+                    <span class="label">Total Received:</span>
+                    <span class="value">$200 (from 8 members)</span>
+                </div>
+                <div class="deductions">
+                    <span class="label">Deductions:</span>
+                    <ul>
+                        <li>$100 for Basic 1</li>
+                        <li>$50 maintenance</li>
+                    </ul>
+                </div>
+                <div class="available">
+                    <span class="label">Available for Withdrawal:</span>
+                    <span class="value">$50</span>
+                </div>
+            </div>
+            <button class="plan-button">Choose Plan</button>
+        </div>
+
+        <!-- Basic 1 -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <h2>Basic 1</h2>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">100</span>
+                </div>
+            </div>
+            <div class="plan-details">
+                <div class="total-received">
+                    <span class="label">Total Received:</span>
+                    <span class="value">$1,300 (from 13 members)</span>
+                </div>
+                <div class="deductions">
+                    <span class="label">Deductions:</span>
+                    <ul>
+                        <li>1/13 ($100) for repurchase (12 times)</li>
+                    </ul>
+                </div>
+                <div class="available">
+                    <span class="label">Available for Withdrawal:</span>
+                    <span class="value">$1000</span>
+                </div>
+            </div>
+            <button class="plan-button">Choose Plan</button>
+        </div>
+
+        <!-- Basic 2 -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <h2>Basic 2</h2>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">200</span>
+                </div>
+            </div>
+            <div class="plan-details">
+                <div class="total-received">
+                    <span class="label">Total Received:</span>
+                    <span class="value">$6500 (from 13 members)</span>
+                </div>
+                <div class="deductions">
+                    <span class="label">Deductions:</span>
+                    <ul>
+                        <li>1/13 ($500) for repurchase (12 times)</li>
+                    </ul>
+                </div>
+                <div class="available">
+                    <span class="label">Available for Withdrawal:</span>
+                    <span class="value">$5000</span>
+                </div>
+            </div>
+            <button class="plan-button">Choose Plan</button>
+        </div>
+
+        <!-- Standard -->
+        <div class="plan-card featured">
+            <div class="plan-header">
+                <h2>Standard</h2>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">1000</span>
+                </div>
+            </div>
+            <div class="plan-details">
+                <div class="total-received">
+                    <span class="label">Total Received:</span>
+                    <span class="value">$13,000 (from 13 members)</span>
+                </div>
+                <div class="deductions">
+                    <span class="label">Deductions:</span>
+                    <ul>
+                        <li>1/13 ($1000) for repurchase (12 times)</li>
+                    </ul>
+                </div>
+                <div class="available">
+                    <span class="label">Available for Withdrawal:</span>
+                    <span class="value">$10,000</span>
+                </div>
+            </div>
+            <button class="plan-button">Choose Plan</button>
+        </div>
+
+        <!-- Ultimate 1 -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <h2>Ultimate 1</h2>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">2500</span>
+                </div>
+            </div>
+            <div class="plan-details">
+                <div class="total-received">
+                    <span class="label">Total Received:</span>
+                    <span class="value">$32,500 (from 13 members)</span>
+                </div>
+                <div class="deductions">
+                    <span class="label">Deductions:</span>
+                    <ul>
+                        <li>1/13 ($2500) for repurchase (12 times)</li>
+                    </ul>
+                </div>
+                <div class="available">
+                    <span class="label">Available for Withdrawal:</span>
+                    <span class="value">$25,000</span>
+                </div>
+            </div>
+            <button class="plan-button">Choose Plan</button>
+        </div>
+
+        <!-- Ultimate 2 -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <h2>Ultimate 2</h2>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">5000</span>
+                </div>
+            </div>
+            <div class="plan-details">
+                <div class="total-received">
+                    <span class="label">Total Received:</span>
+                    <span class="value">$65,000 (from 13 members)</span>
+                </div>
+                <div class="deductions">
+                    <span class="label">Deductions:</span>
+                    <ul>
+                        <li>1/13 ($5000) for repurchase (12 times)</li>
+                    </ul>
+                </div>
+                <div class="available">
+                    <span class="label">Available for Withdrawal:</span>
+                    <span class="value">$50,000</span>
+                </div>
+            </div>
+            <button class="plan-button">Choose Plan</button>
+        </div>
+    </div>
+
+    <!-- How it Works Section -->
+    <div class="how-it-works">
+        <h2>How it Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <p>Subscribe to a plan and enter a queue.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <p>As new members join, you move up the queue.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <p>When you reach the top, you receive contributions from others.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <p>Some deductions apply for repurchase and maintenance.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <p>The rest is available for withdrawal.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block css %}
+<style>
+    .plans-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .plans-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .plans-header h1 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .plans-header p {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        padding: 1rem;
+        margin-bottom: 4rem;
+    }
+
+    .plan-card {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .plan-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .plan-card.featured {
+        border: 2px solid #4CAF50;
+        transform: scale(1.05);
+    }
+
+    .plan-card.featured:hover {
+        transform: scale(1.05) translateY(-5px);
+    }
+
+    .plan-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .plan-header h2 {
+        font-size: 1.8rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .plan-price {
+        font-size: 2.5rem;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .plan-price .currency {
+        font-size: 1.5rem;
+        vertical-align: super;
+    }
+
+    .plan-details {
+        margin-bottom: 2rem;
+    }
+
+    .plan-details .label {
+        font-weight: 600;
+        color: #333;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .plan-details .value {
+        color: #666;
+    }
+
+    .plan-details ul {
+        list-style: none;
+        padding-left: 0;
+        margin: 0.5rem 0;
+    }
+
+    .plan-details li {
+        color: #666;
+        padding: 0.3rem 0;
+    }
+
+    .total-received, .deductions, .available {
+        margin-bottom: 1rem;
+        padding: 0.5rem 0;
+    }
+
+    .available {
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+    }
+
+    .available .value {
+        color: #4CAF50;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .plan-button {
+        width: 100%;
+        padding: 1rem;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .plan-button:hover {
+        background: #45a049;
+    }
+
+    /* How it Works Section */
+    .how-it-works {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .how-it-works h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 2rem;
+    }
+
+    .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        background: #4CAF50;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .step p {
+        margin: 0;
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+        .plans-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .plan-card.featured {
+            transform: none;
+        }
+
+        .plan-card.featured:hover {
+            transform: translateY(-5px);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.querySelectorAll('.plan-button').forEach(button => {
+    button.addEventListener('click', function() {
+        const planName = this.closest('.plan-card').querySelector('h2').textContent;
+        const planAmount = this.closest('.plan-card').querySelector('.amount').textContent;
+        window.location.href = `/dashboard/fund-account/?plan=${encodeURIComponent(planName)}&amount=${encodeURIComponent(planAmount)}`;
+    });
+});
+</script>
+{% endblock %} 
+{% endblock %} 
