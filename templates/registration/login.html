@@ -6,55 +6,67 @@
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-header">
-            <img src="{% static 'images/logo.svg' %}" alt="AgapeThrift Logo" class="auth-logo">
-            <h1>Welcome Back</h1>
-            <p>Login to your account</p>
+            <img src="{% static 'images/logo.png' %}" alt="Agape Thrift Logo" class="auth-logo">
+            <h1 class="auth-title">Log In to Your Account</h1>
+            <p class="auth-subtitle">Welcome back! Please enter your credentials to access your account.</p>
         </div>
 
         <form method="post" class="auth-form">
             {% csrf_token %}
             
+            {% if form.errors %}
+            <div class="error-alert">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
             <div class="form-group">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" id="username" name="username" class="form-control" placeholder="Enter Username" required>
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" required>
             </div>
 
             <div class="form-group">
-                <label for="password" class="form-label">Password</label>
+                <div class="password-label">
+                    <label for="password" class="form-label">Password</label>
+                    <a href="{% url 'password_reset' %}" class="forgot-link">Forgot Password?</a>
+                </div>
                 <div class="password-input">
-                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter Password" required>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
                     <button type="button" class="password-toggle" aria-label="Toggle password visibility">
                         <img src="{% static 'images/icons/eye.svg' %}" alt="Show password">
                     </button>
                 </div>
             </div>
 
-            <div class="form-options">
-                <label class="checkbox-label">
-                    <input type="checkbox" name="remember" id="remember">
-                    <span class="checkbox-text">Remember me</span>
+            <div class="form-group remember-group">
+                <label class="remember-label">
+                    <input type="checkbox" name="remember_me" class="remember-checkbox">
+                    <span class="remember-text">Remember me</span>
                 </label>
-                <a href="{% url 'password_reset' %}" class="forgot-password">Forgot Password?</a>
             </div>
 
-            {% if form.errors %}
-            <div class="alert alert-danger">
-                {% for field in form %}
-                    {% for error in field.errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                {% endfor %}
-                {% for error in form.non_field_errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <button type="submit" class="btn btn-primary btn-block">Log In</button>
+            <button type="submit" class="auth-button">Log In</button>
         </form>
 
+        <div class="auth-divider">
+            <span class="divider-text">or</span>
+        </div>
+
+        <div class="social-login">
+            <a href="{% url 'social:begin' 'google-oauth2' %}" class="social-button google-button">
+                <img src="{% static 'images/icons/google.svg' %}" alt="Google" class="social-icon">
+                Continue with Google
+            </a>
+        </div>
+
         <div class="auth-footer">
-            <p>Don't have an account? <a href="{% url 'register' %}">Create Account</a></p>
+            <p class="register-prompt">
+                Don't have an account? <a href="{% url 'register' %}" class="register-link">Register</a>
+            </p>
         </div>
     </div>
 </div>
@@ -63,78 +75,89 @@
 {% block extra_css %}
 <style>
     .auth-container {
-        min-height: 100vh;
         display: flex;
-        align-items: center;
         justify-content: center;
-        padding: var(--spacing-md);
-        background-color: #F5F5F5;
+        align-items: center;
+        min-height: calc(100vh - 200px);
+        padding: 40px 20px;
+        background-color: #f9f9f9;
     }
 
     .auth-card {
-        background: white;
-        border-radius: var(--border-radius-lg);
-        padding: var(--spacing-xl);
         width: 100%;
-        max-width: 480px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 40px;
     }
 
     .auth-header {
         text-align: center;
-        margin-bottom: var(--spacing-xl);
+        margin-bottom: 30px;
     }
 
     .auth-logo {
-        width: 120px;
-        height: auto;
-        margin-bottom: var(--spacing-md);
+        height: 50px;
+        margin-bottom: 20px;
     }
 
-    .auth-header h1 {
-        font-size: 1.5rem;
-        margin-bottom: var(--spacing-xs);
+    .auth-title {
+        font-size: 1.8rem;
+        color: #1b2c25;
+        margin-bottom: 10px;
     }
 
-    .auth-header p {
-        color: var(--text-light);
+    .auth-subtitle {
+        color: #666;
+        font-size: 0.95rem;
     }
 
     .auth-form {
-        margin-bottom: var(--spacing-lg);
+        margin-bottom: 30px;
     }
 
-    .form-options {
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .password-label {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: var(--spacing-lg);
+        margin-bottom: 8px;
     }
 
-    .checkbox-label {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-    }
-
-    .checkbox-label input[type="checkbox"] {
-        margin-right: var(--spacing-xs);
-    }
-
-    .checkbox-text {
-        color: var(--text-light);
-        font-size: 0.875rem;
-    }
-
-    .forgot-password {
+    .forgot-link {
+        font-size: 0.85rem;
         color: var(--primary-color);
         text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
     }
 
-    .forgot-password:hover {
+    .forgot-link:hover {
         text-decoration: underline;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 200, 83, 0.1);
     }
 
     .password-input {
@@ -143,13 +166,15 @@
 
     .password-toggle {
         position: absolute;
-        right: var(--spacing-sm);
+        right: 12px;
         top: 50%;
         transform: translateY(-50%);
         background: none;
         border: none;
-        padding: var(--spacing-xs);
         cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
     }
 
     .password-toggle img {
@@ -163,46 +188,124 @@
         opacity: 1;
     }
 
-    .btn-block {
+    .remember-group {
+        display: flex;
+        align-items: center;
+    }
+
+    .remember-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .remember-checkbox {
+        margin-right: 8px;
+    }
+
+    .remember-text {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .auth-button {
         width: 100%;
+        padding: 12px;
+        background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity var(--transition-fast);
+    }
+
+    .auth-button:hover {
+        opacity: 0.9;
+    }
+
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        margin: 20px 0;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .divider-text {
+        padding: 0 10px;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .social-login {
+        margin-top: 20px;
+    }
+
+    .social-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: white;
+        color: #333;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .social-button:hover {
+        background: #f9f9f9;
+    }
+
+    .social-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
     }
 
     .auth-footer {
         text-align: center;
-        color: var(--text-light);
+        margin-top: 20px;
     }
 
-    .auth-footer a {
+    .register-prompt {
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .register-link {
         color: var(--primary-color);
         text-decoration: none;
         font-weight: 500;
     }
 
-    .auth-footer a:hover {
+    .register-link:hover {
         text-decoration: underline;
     }
 
-    .alert {
-        padding: var(--spacing-md);
-        border-radius: var(--border-radius-md);
-        margin-bottom: var(--spacing-md);
-    }
-
-    .alert-danger {
+    .error-alert {
         background-color: #FEE2E2;
         color: #DC2626;
         border: 1px solid #FCA5A5;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
     }
 
     @media (max-width: 480px) {
         .auth-card {
-            padding: var(--spacing-lg);
-        }
-
-        .form-options {
-            flex-direction: column;
-            gap: var(--spacing-md);
-            align-items: flex-start;
+            padding: 30px 20px;
         }
     }
 </style>
@@ -211,18 +314,19 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const toggleButton = document.querySelector('.password-toggle');
+    const toggleButtons = document.querySelectorAll('.password-toggle');
     
-    toggleButton.addEventListener('click', function() {
-        const input = this.parentElement.querySelector('input');
-        const type = input.type === 'password' ? 'text' : 'password';
-        input.type = type;
-        
-        // Update icon based on password visibility
-        const img = this.querySelector('img');
-        img.src = type === 'password' 
-            ? "{% static 'images/icons/eye.svg' %}"
-            : "{% static 'images/icons/eye-off.svg' %}";
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
+            
+            const img = this.querySelector('img');
+            img.src = type === 'password' 
+                ? "{% static 'images/icons/eye.svg' %}"
+                : "{% static 'images/icons/eye-off.svg' %}";
+        });
     });
 });
 </script>

@@ -64,8 +64,8 @@ def subscribe(request, plan_id):
                     if request.user.referred_by:
                         Referral.create_referral_bonus(subscription)
 
-                messages.success(request, f"Successfully subscribed to {plan.name} plan!")
-                return redirect('subscriptions:my_subscription')
+                    messages.success(request, f"Successfully subscribed to {plan.name} plan!")
+                    return redirect('subscriptions:my_subscription')
             except Exception as e:
                 logger.error(f"Error creating subscription: {str(e)}")
                 messages.error(request, "An error occurred while processing your subscription")
@@ -81,7 +81,7 @@ def subscribe(request, plan_id):
 @login_required
 def my_subscription(request):
     subscription = get_object_or_404(Subscription, user=request.user, status='ACTIVE')
-    
+
     try:
         queue_entry = Queue.objects.get(subscription=subscription)
         total_in_queue = Queue.objects.filter(plan=subscription.plan).count()

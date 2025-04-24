@@ -19,8 +19,95 @@
     <!-- Meta tags -->
     <meta name="description" content="{% block meta_description %}AgapeThrift - Smart Investment Platform{% endblock %}">
     <meta name="keywords" content="investment, financial freedom, smart investments, collective contributions">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #009846;
+            --secondary-color: #008B62;
+            --tertiary-color: #91C59A;
+            --dark-bg: #03140F;
+            --light-text: #ffffff;
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --transition-fast: 0.2s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            line-height: 1.6;
+        }
+
+        .skip-to-content {
+            position: absolute;
+            top: -100px;
+            left: 0;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            z-index: 999;
+            text-decoration: none;
+            transition: top 0.3s ease;
+        }
+
+        .skip-to-content:focus {
+            top: 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            color: var(--light-text);
+            border-radius: var(--border-radius-md);
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity var(--transition-fast);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--light-text);
+            color: var(--light-text);
+            border-radius: var(--border-radius-md);
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+        }
+    </style>
 </head>
 <body class="{% block body_class %}{% endblock %}">
+    <a href="#main-content" class="skip-to-content">Skip to main content</a>
+    
     <!-- Header/Navbar -->
     <header class="main-header">
         <nav class="navbar">
@@ -29,7 +116,7 @@
                     <img src="{% static 'images/logo.svg' %}" alt="AgapeThrift Logo" class="logo">
                 </a>
             </div>
-            
+        
             <div class="navbar-menu">
                 <a href="{% url 'frontend:features' %}" class="nav-link">Features</a>
                 <a href="{% url 'frontend:about' %}" class="nav-link">About Us</a>
@@ -53,7 +140,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main id="main-content" class="main-content">
         {% if messages %}
         <div class="messages">
             {% for message in messages %}
