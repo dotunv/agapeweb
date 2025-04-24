@@ -57,7 +57,11 @@ coverage.xml
 *.mo
 *.pot
 
+
 # Backup files
 *.bak
 *.tmp
 *~ 
+
+
+db.sqlite3
