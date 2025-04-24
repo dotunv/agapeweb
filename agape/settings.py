@@ -251,7 +251,9 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']  # *
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # For development, change to 'mandatory' in production
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_RATE_LIMITS = {
-    'login_failed': {'calls': 5, 'timeout': 300},  # 5 attempts, 5 minutes timeout
+    'login': '5/m',  # 5 attempts per minute
+    'signup': '5/m',  # 5 attempts per minute
+    'password_reset': '5/m',  # 5 attempts per minute
 }
 
 LOGIN_REDIRECT_URL = 'frontend:dashboard'

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Login - AgapeThrift{% endblock %}
 
@@ -7,8 +8,8 @@
     <div class="auth-card">
         <div class="auth-header">
             <img src="{% static 'images/logo.png' %}" alt="Agape Thrift Logo" class="auth-logo">
-            <h1 class="auth-title">Log In to Your Account</h1>
-            <p class="auth-subtitle">Welcome back! Please enter your credentials to access your account.</p>
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="auth-subtitle">Sign in to continue to AgapeThrift</p>
         </div>
 
         <form method="post" class="auth-form">
@@ -25,31 +26,33 @@
             {% endif %}
 
             <div class="form-group">
-                <label for="email" class="form-label">Email Address</label>
-                <input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" required>
+                <label for="login" class="form-label">Username or Email</label>
+                <input type="text" id="login" name="login" class="form-input" placeholder="Enter your username or email" required>
             </div>
 
             <div class="form-group">
-                <div class="password-label">
-                    <label for="password" class="form-label">Password</label>
-                    <a href="{% url 'password_reset' %}" class="forgot-link">Forgot Password?</a>
-                </div>
+                <label for="password" class="form-label">Password</label>
                 <div class="password-input">
                     <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
-                    <button type="button" class="password-toggle" aria-label="Toggle password visibility">
-                        <img src="{% static 'images/icons/eye.svg' %}" alt="Show password">
+                    <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                        <img src="{% static 'images/icons/eye.svg' %}" alt="Toggle Password">
                     </button>
                 </div>
             </div>
 
-            <div class="form-group remember-group">
-                <label class="remember-label">
-                    <input type="checkbox" name="remember_me" class="remember-checkbox">
-                    <span class="remember-text">Remember me</span>
+            <div class="form-group form-checkbox">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="remember" id="remember">
+                    <span class="checkbox-text">Remember me</span>
                 </label>
+                <a href="{% url 'account_reset_password' %}" class="forgot-password">Forgot Password?</a>
             </div>
 
-            <button type="submit" class="auth-button">Log In</button>
+            <button type="submit" class="auth-button">Sign In</button>
+
+            <div class="auth-links">
+                <p>Don't have an account? <a href="{% url 'frontend:register' %}">Create one</a></p>
+            </div>
         </form>
 
         <div class="auth-divider">
@@ -57,16 +60,10 @@
         </div>
 
         <div class="social-login">
-            <a href="{% url 'social:begin' 'google-oauth2' %}" class="social-button google-button">
+            <a href="{% url 'google_login' %}" class="social-button google-button">
                 <img src="{% static 'images/icons/google.svg' %}" alt="Google" class="social-icon">
                 Continue with Google
             </a>
-        </div>
-
-        <div class="auth-footer">
-            <p class="register-prompt">
-                Don't have an account? <a href="{% url 'register' %}" class="register-link">Register</a>
-            </p>
         </div>
     </div>
 </div>
@@ -121,28 +118,38 @@
         margin-bottom: 20px;
     }
 
+    .form-checkbox {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .checkbox-text {
+        margin-left: 8px;
+        color: #333;
+    }
+
+    .forgot-password {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .forgot-password:hover {
+        text-decoration: underline;
+    }
+
     .form-label {
         display: block;
         margin-bottom: 8px;
         font-weight: 500;
         color: #333;
-    }
-
-    .password-label {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-    }
-
-    .forgot-link {
-        font-size: 0.85rem;
-        color: var(--primary-color);
-        text-decoration: none;
-    }
-
-    .forgot-link:hover {
-        text-decoration: underline;
     }
 
     .form-input {
@@ -164,7 +171,7 @@
         position: relative;
     }
 
-    .password-toggle {
+    .toggle-password {
         position: absolute;
         right: 12px;
         top: 50%;
@@ -177,35 +184,15 @@
         align-items: center;
     }
 
-    .password-toggle img {
+    .toggle-password img {
         width: 20px;
         height: 20px;
         opacity: 0.5;
         transition: opacity var(--transition-fast);
     }
 
-    .password-toggle:hover img {
+    .toggle-password:hover img {
         opacity: 1;
-    }
-
-    .remember-group {
-        display: flex;
-        align-items: center;
-    }
-
-    .remember-label {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-    }
-
-    .remember-checkbox {
-        margin-right: 8px;
-    }
-
-    .remember-text {
-        font-size: 0.9rem;
-        color: #666;
     }
 
     .auth-button {
@@ -223,6 +210,21 @@
 
     .auth-button:hover {
         opacity: 0.9;
+    }
+
+    .auth-links {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .auth-links a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .auth-links a:hover {
+        text-decoration: underline;
     }
 
     .auth-divider {
@@ -262,6 +264,7 @@
         font-weight: 500;
         cursor: pointer;
         transition: all var(--transition-fast);
+        text-decoration: none;
     }
 
     .social-button:hover {
@@ -272,26 +275,6 @@
         width: 20px;
         height: 20px;
         margin-right: 10px;
-    }
-
-    .auth-footer {
-        text-align: center;
-        margin-top: 20px;
-    }
-
-    .register-prompt {
-        color: #666;
-        font-size: 0.95rem;
-    }
-
-    .register-link {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .register-link:hover {
-        text-decoration: underline;
     }
 
     .error-alert {
@@ -313,21 +296,10 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const toggleButtons = document.querySelectorAll('.password-toggle');
-    
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const input = this.parentElement.querySelector('input');
-            const type = input.type === 'password' ? 'text' : 'password';
-            input.type = type;
-            
-            const img = this.querySelector('img');
-            img.src = type === 'password' 
-                ? "{% static 'images/icons/eye.svg' %}"
-                : "{% static 'images/icons/eye-off.svg' %}";
-        });
-    });
-});
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+    input.setAttribute('type', type);
+}
 </script>
 {% endblock %} 

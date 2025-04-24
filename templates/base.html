@@ -7,7 +7,7 @@
     <title>{% block title %}AgapeThrift{% endblock %}</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.png' %}">
     
     <!-- CSS -->
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
@@ -26,16 +26,16 @@
             --primary-color: #009846;
             --secondary-color: #008B62;
             --tertiary-color: #91C59A;
-            --dark-bg: #03140F;
-            --light-text: #ffffff;
+            --dark-bg: #ffffff;
+            --light-text: #000000;
             --spacing-xs: 0.25rem;
             --spacing-sm: 0.5rem;
-            --spacing-md: 1rem;
-            --spacing-lg: 1.5rem;
-            --spacing-xl: 2rem;
+            --spacing-md: 0.75rem;
+            --spacing-lg: 1rem;
+            --spacing-xl: 1.5rem;
             --border-radius-sm: 4px;
-            --border-radius-md: 8px;
-            --border-radius-lg: 12px;
+            --border-radius-md: 20px;
+            --border-radius-lg: 24px;
             --transition-fast: 0.2s;
         }
 
@@ -69,39 +69,120 @@
         }
 
         .btn-primary {
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: var(--primary-color);
             border: none;
-            color: var(--light-text);
+            color: #fff;
             border-radius: var(--border-radius-md);
-            padding: 10px 20px;
-            font-weight: 600;
+            padding: 6px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
             transition: opacity var(--transition-fast);
+            text-decoration: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: none;
+            color: #000;
+            padding: 6px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-decoration: none;
         }
 
         .btn-primary:hover {
             opacity: 0.9;
         }
 
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--light-text);
-            color: var(--light-text);
-            border-radius: var(--border-radius-md);
-            padding: 10px 20px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .btn-outline:hover {
+            background: rgba(0, 0, 0, 0.05);
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 var(--spacing-md);
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-xs) var(--spacing-xl);
+            border-bottom: 1px solid #eee;
+            background: #fff;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-brand .logo {
+            height: 32px;
+            width: auto;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: var(--spacing-xl);
+        }
+
+        .nav-link {
+            color: #000;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: opacity var(--transition-fast);
+        }
+
+        .nav-link:hover {
+            opacity: 0.7;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .navbar-links {
+                display: none;
+            }
+
+            .auth-buttons {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+                background: none;
+                border: none;
+                padding: var(--spacing-xs);
+            }
+
+            .mobile-menu-toggle span {
+                display: block;
+                width: 20px;
+                height: 2px;
+                background-color: var(--light-text);
+                margin: 4px 0;
+                transition: all var(--transition-fast);
+            }
         }
     </style>
 </head>
@@ -111,16 +192,19 @@
     <!-- Header/Navbar -->
     <header class="main-header">
         <nav class="navbar">
-            <div class="navbar-brand">
-                <a href="{% url 'frontend:home' %}">
-                    <img src="{% static 'images/logo.svg' %}" alt="AgapeThrift Logo" class="logo">
-                </a>
+            <div class="navbar-left">
+                <div class="navbar-brand">
+                    <a href="{% url 'frontend:home' %}">
+                        <img src="{% static 'images/logo.png' %}" alt="AgapeThrift Logo" class="logo">
+                    </a>
+                </div>
+                <div class="navbar-links">
+                    <a href="{% url 'frontend:features' %}" class="nav-link">Features</a>
+                    <a href="{% url 'frontend:about' %}" class="nav-link">About Us</a>
+                </div>
             </div>
         
-            <div class="navbar-menu">
-                <a href="{% url 'frontend:features' %}" class="nav-link">Features</a>
-                <a href="{% url 'frontend:about' %}" class="nav-link">About Us</a>
-                
+            <div class="navbar-right">
                 <div class="auth-buttons">
                     {% if user.is_authenticated %}
                         <a href="{% url 'frontend:dashboard' %}" class="btn btn-primary">Dashboard</a>

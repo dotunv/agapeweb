@@ -44,9 +44,21 @@ def register(request):
             # Handle referral code logic here
             pass
             
-        login(request, user)
-        messages.success(request, 'Account created successfully!')
-        return redirect('dashboard')
+        # Authenticate the user with the correct backend
+        user = authenticate(
+            request,
+            username=username,
+            password=password,
+            backend='django.contrib.auth.backends.ModelBackend'
+        )
+        
+        if user is not None:
+            login(request, user)
+            messages.success(request, 'Account created successfully!')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Authentication failed.')
+            return render(request, 'registration/register.html')
         
     return render(request, 'registration/register.html')
 
