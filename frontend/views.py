@@ -67,7 +67,7 @@ def dashboard(request):
     """User dashboard view."""
     context = {
         'balance': request.user.balance,
-        'recent_subscriptions': Subscription.objects.filter(user=request.user).order_by('-created_at')[:5],
+        'recent_subscriptions': Subscription.objects.filter(user=request.user).order_by('-joined_at')[:5],
         'available_plans': Plan.objects.all(),
         'unread_notifications_count': request.user.notifications.filter(read=False).count()
     }

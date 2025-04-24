@@ -17,7 +17,7 @@ def register(request):
             user = form.save()
             login(request, user)
             messages.success(request, 'Registration successful!')
-            return redirect('dashboard')
+            return redirect('frontend:dashboard')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:

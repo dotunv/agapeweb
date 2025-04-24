@@ -6,6 +6,7 @@ import uuid
 import random
 import string
 from typing import Optional, Union, List, Dict, Any
+from decimal import Decimal
 
 class User(AbstractUser):
     """
@@ -149,3 +150,45 @@ class User(AbstractUser):
             self.referral_code = self.generate_referral_code()
 
         super().save(*args, **kwargs)
+
+    @property
+    def balance(self) -> float:
+        """
+        Calculate the total balance by summing up all wallet balances.
+
+        Returns:
+            float: The total balance across all wallets
+        """
+        return float(
+            self.pre_starter_wallet +
+            self.starter_wallet +
+            self.basic1_wallet +
+            self.basic2_wallet +
+            self.standard_wallet +
+            self.ultimate1_wallet +
+            self.ultimate2_wallet +
+            self.referral_bonus_wallet +
+            self.funding_wallet
+        )
+
+class Notification(models.Model):
+    """
+    Represents a notification for a user.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    notification_type = models.CharField(max_length=50, choices=[
+        ('SUBSCRIPTION', 'Subscription'),
+        ('WITHDRAWAL', 'Withdrawal'),
+        ('TRANSACTION', 'Transaction'),
+        ('REFERRAL', 'Referral'),
+        ('SYSTEM', 'System')
+    ])
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.notification_type} - {self.message[:50]}"
