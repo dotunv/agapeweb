@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import RegexValidator, MinValueValidator, MinLengthValidator
+from django.utils import timezone
 import uuid
 import random
 import string
@@ -107,6 +108,22 @@ class User(AbstractUser):
         validators=[MinValueValidator(0, message="Wallet balance cannot be negative")]
     )
 
+    # Additional security fields
+    last_password_change = models.DateTimeField(default=timezone.now)
+    password_changed = models.BooleanField(default=False)
+    failed_login_attempts = models.IntegerField(default=0)
+    last_failed_login = models.DateTimeField(null=True, blank=True)
+    account_locked_until = models.DateTimeField(null=True, blank=True)
+    
+    # Additional user fields
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    two_factor_enabled = models.BooleanField(default=False)
+    two_factor_secret = models.CharField(max_length=32, blank=True, null=True)
+    
+    # Security preferences
+    security_questions_answered = models.BooleanField(default=False)
+    backup_codes = models.TextField(blank=True, null=True)  # Store as JSON
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
@@ -117,7 +134,7 @@ class User(AbstractUser):
         Returns:
             str: The user's email address
         """
-        return self.email
+        return self.email or self.username
 
     def generate_referral_code(self) -> str:
         """
@@ -170,6 +187,34 @@ class User(AbstractUser):
             self.referral_bonus_wallet +
             self.funding_wallet
         )
+
+    def increment_failed_login(self):
+        self.failed_login_attempts += 1
+        self.last_failed_login = timezone.now()
+        
+        # Lock account after 5 failed attempts for 30 minutes
+        if self.failed_login_attempts >= 5:
+            self.account_locked_until = timezone.now() + timezone.timedelta(minutes=30)
+        self.save()
+    
+    def reset_failed_logins(self):
+        self.failed_login_attempts = 0
+        self.account_locked_until = None
+        self.save()
+    
+    def is_account_locked(self):
+        if self.account_locked_until:
+            if timezone.now() < self.account_locked_until:
+                return True
+            else:
+                self.reset_failed_logins()
+        return False
+    
+    def update_password(self, new_password):
+        self.set_password(new_password)
+        self.last_password_change = timezone.now()
+        self.password_changed = True
+        self.save()
 
 class Notification(models.Model):
     """
