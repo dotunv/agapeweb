@@ -13,7 +13,7 @@ def home(request):
 def register(request):
     """User registration view."""
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('frontend:dashboard')
         
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -55,7 +55,7 @@ def register(request):
         if user is not None:
             login(request, user)
             messages.success(request, 'Account created successfully!')
-            return redirect('dashboard')
+            return redirect('frontend:dashboard')
         else:
             messages.error(request, 'Authentication failed.')
             return render(request, 'registration/register.html')
@@ -80,7 +80,7 @@ def fund_account(request):
         amount = request.POST.get('amount')
         # Handle payment processing here
         messages.success(request, f'Successfully funded account with ${amount}')
-        return redirect('dashboard')
+        return redirect('frontend:dashboard')
     return render(request, 'dashboard/fund_account.html')
 
 @login_required
@@ -126,7 +126,7 @@ def withdrawal(request):
         amount = request.POST.get('amount')
         # Handle withdrawal processing here
         messages.success(request, f'Successfully initiated withdrawal of ${amount}')
-        return redirect('dashboard')
+        return redirect('frontend:dashboard')
     return render(request, 'dashboard/withdrawal.html', context)
 
 @login_required
