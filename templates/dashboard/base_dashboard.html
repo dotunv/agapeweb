@@ -15,7 +15,10 @@
             --background-light: #F5F5F5;
             --white: #FFFFFF;
             --light-blue: #9BBFF4;
+            --sidebar-width: 270px;
+            --transition-speed: 0.3s;
         }
+        
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--background-light);
@@ -23,220 +26,345 @@
             margin: 0;
             overflow-x: hidden;
         }
+
         .dashboard-layout {
             display: flex;
             min-height: 100vh;
+            background: #f5f5f5;
+            position: relative;
         }
+
+        /* Mobile Menu Toggle Button */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            color: var(--text-color);
+        }
+
+        .mobile-menu-toggle svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Sidebar Styles */
         .sidebar {
-            width: 270px;
+            width: var(--sidebar-width);
             background: var(--primary-color);
             color: var(--white);
+            display: flex;
             flex-direction: column;
-            padding: 32px 0;
+            align-items: center;
+            padding: 32px 0 0 0;
             position: fixed;
             left: 0;
             top: 0;
             bottom: 0;
             z-index: 100;
-            transform: translateX(0);
-            transition: transform 0.3s ease;
+            transition: transform var(--transition-speed) ease;
         }
-        .sidebar.hidden {
-            transform: translateX(-100%);
-        }
+
         .sidebar-header {
-            margin-bottom: 40px;
-            text-align: center;
+            margin-bottom: clamp(24px, 5vw, 40px);
         }
+
         .sidebar-logo {
-            height: 60px;
+            height: clamp(40px, 8vw, 60px);
             width: auto;
         }
+
         .sidebar-nav {
             width: 100%;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            height: calc(100% - 120px);
+            overflow-y: auto;
         }
+
         .sidebar-nav ul {
             list-style: none;
             padding: 0;
             margin: 0;
         }
+
         .sidebar-nav li {
-            margin-bottom: 6px;
+            margin-bottom: clamp(4px, 1vw, 6px);
         }
+
         .sidebar-nav a,
         .logout-link {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: clamp(12px, 2vw, 16px);
             color: var(--white);
             text-decoration: none;
-            font-size: 16px;
-            padding: 14px 32px;
+            font-size: clamp(14px, 1.5vw, 16px);
+            padding: clamp(10px, 2vw, 14px) clamp(20px, 4vw, 32px);
             border-radius: 15px;
             transition: background 0.2s;
         }
+
         .sidebar-nav a.active,
         .sidebar-nav a:hover,
         .logout-link:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255,255,255,0.12);
         }
-        .icon {
-            width: 24px;
-            height: 24px;
-        }
-        .logout-link {
-            margin-top: auto;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            width: 100%;
-            text-align: left;
-        }
+
+        /* Main Content Styles */
         .main {
             flex: 1;
-            margin-left: 270px;
-            transition: margin-left 0.3s ease;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: margin-left var(--transition-speed) ease;
         }
-        .main.full-width {
-            margin-left: 0;
-        }
+
         .topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: var(--white);
-            padding: 0 48px;
+            padding: 0 clamp(16px, 4vw, 48px);
             height: 80px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 90;
         }
-        .hamburger {
-            display: none;
-            font-size: 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-color);
-        }
+
         .page-title {
-            font-size: clamp(1.5rem, 5vw, 1.8rem);
+            font-size: clamp(1.5rem, 3vw, 2rem);
             font-weight: 700;
         }
+
         .nav-content ul {
             display: flex;
             align-items: center;
-            gap: 32px;
+            gap: clamp(16px, 3vw, 32px);
             list-style: none;
             margin: 0;
             padding: 0;
         }
+
         .how-it-works {
             color: var(--primary-color);
             text-decoration: none;
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
         }
+
         .profile-image {
-            width: 44px;
-            height: 44px;
+            width: clamp(36px, 5vw, 44px);
+            height: clamp(36px, 5vw, 44px);
             border-radius: 50%;
             object-fit: cover;
-            background: #eee;
-            border: 2px solid #e5e5e5;
         }
+
         .dashboard-content {
-            padding: 40px 48px;
+            padding: clamp(20px, 4vw, 40px) clamp(16px, 4vw, 48px);
             background: var(--background-light);
-            min-height: calc(100vh - 80px);
+            flex: 1;
         }
+
+        /* Overlay for mobile menu */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 95;
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        /* Responsive Styles */
         @media (max-width: 1100px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
             .sidebar {
                 transform: translateX(-100%);
             }
-            .sidebar.active {
-                transform: translateX(0);
-            }
+
             .main {
                 margin-left: 0;
             }
-            .main.full-width {
-                margin-left: 0;
-            }
-            .hamburger {
+
+            .mobile-overlay {
                 display: block;
             }
-            .topbar {
-                padding: 0 24px;
+
+            /* Mobile menu open states */
+            .mobile-menu-open .sidebar {
+                transform: translateX(0);
             }
-            .dashboard-content {
-                padding: 32px 16px;
+
+            .mobile-menu-open .mobile-overlay {
+                opacity: 1;
+            }
+
+            .mobile-menu-open .main {
+                margin-left: 0;
             }
         }
+
         @media (max-width: 600px) {
-            .topbar {
-                padding: 0 16px;
+            .how-it-works {
+                display: none;
             }
+
+            .topbar {
+                height: 60px;
+            }
+
             .dashboard-content {
-                padding: 24px 12px;
+                padding: 16px 12px;
             }
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-<div class="dashboard-layout">
+<div class="dashboard-layout" id="dashboardLayout">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+    </button>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="{% static 'images/dash-logo.svg' %}" alt="Agape Thrift Logo" class="sidebar-logo" loading="lazy" />
+            <img src="{% static 'images/dash-logo.svg' %}" alt="Agape Thrift Logo" class="sidebar-logo" />
         </div>
         <nav class="sidebar-nav">
             <ul>
-                <li><a href="{% url 'frontend:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><img src="{% static 'images/icons/dashboard.svg' %}" class="icon" alt="" /><span>Dashboard</span></a></li>
-                <li><a href="{% url 'frontend:fund_account' %}" class="{% if request.resolver_match.url_name == 'fund_account' %}active{% endif %}"><img src="{% static 'images/icons/fund_account.svg' %}" class="icon" alt="" /><span>Fund account</span></a></li>
-                <li><a href="{% url 'frontend:plans' %}" class="{% if request.resolver_match.url_name == 'plans' %}active{% endif %}"><img src="{% static 'images/icons/plans.svg' %}" class="icon" alt="" /><span>Plans</span></a></li>
-                <li><a href="{% url 'frontend:subscriptions' %}" class="{% if request.resolver_match.url_name == 'subscriptions' %}active{% endif %}"><img src="{% static 'images/icons/subscriptions.svg' %}" class="icon" alt="" /><span>Subscriptions</span></a></li>
-                <li><a href="{% url 'frontend:referrals' %}" class="{% if request.resolver_match.url_name == 'referrals' %}active{% endif %}"><img src="{% static 'images/icons/referrals.svg' %}" class="icon" alt="" /><span>Referrals</span></a></li>
-                <li><a href="{% url 'frontend:notifications' %}" class="{% if request.resolver_match.url_name == 'notifications' %}active{% endif %}"><img src="{% static 'images/icons/notifications.svg' %}" class="icon" alt="" /><span>Notifications</span></a></li>
-                <li><a href="{% url 'frontend:withdrawal' %}" class="{% if request.resolver_match.url_name == 'withdrawal' %}active{% endif %}"><img src="{% static 'images/icons/withdrawals.svg' %}" class="icon" alt="" /><span>Withdrawal</span></a></li>
-                <li><a href="{% url 'frontend:profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}"><img src="{% static 'images/icons/profile.svg' %}" class="icon" alt="" /><span>Profile</span></a></li>
-                <li><a href="{% url 'users:logout' %}" class="logout-link"><img src="{% static 'images/icons/logout.svg' %}" class="icon" alt="" /><span>Logout</span></a></li>
+                <li>
+                    <a href="{% url 'frontend:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <img src="{% static 'images/icons/dashboard.svg' %}" class="icon" alt="Dashboard" />
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'frontend:fund_account' %}" class="{% if request.resolver_match.url_name == 'fund_account' %}active{% endif %}">
+                        <img src="{% static 'images/icons/fund_account.svg' %}" class="icon" alt="Fund Account" />
+                        <span>Fund account</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'frontend:plans' %}" class="{% if request.resolver_match.url_name == 'plans' %}active{% endif %}">
+                        <img src="{% static 'images/icons/plans.svg' %}" class="icon" alt="Plans" />
+                        <span>Plans</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'frontend:subscriptions' %}" class="{% if request.resolver_match.url_name == 'subscriptions' %}active{% endif %}">
+                        <img src="{% static 'images/icons/subscriptions.svg' %}" class="icon" alt="Subscriptions" />
+                        <span>Subscriptions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'frontend:referrals' %}" class="{% if request.resolver_match.url_name == 'referrals' %}active{% endif %}">
+                        <img src="{% static 'images/icons/referrals.svg' %}" class="icon" alt="Referrals" />
+                        <span>Referrals</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'frontend:notifications' %}" class="{% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+                        <img src="{% static 'images/icons/notifications.svg' %}" class="icon" alt="Notifications" />
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'frontend:withdrawal' %}" class="{% if request.resolver_match.url_name == 'withdrawal' %}active{% endif %}">
+                        <img src="{% static 'images/icons/withdrawals.svg' %}" class="icon" alt="Withdrawal" />
+                        <span>Withdrawal</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'frontend:profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                        <img src="{% static 'images/icons/profile.svg' %}" class="icon" alt="Profile" />
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'users:logout' %}" class="logout-link">
+                        <img src="{% static 'images/icons/logout.svg' %}" class="icon" alt="Logout" />
+                        <span>Logout</span>
+                    </a>
+                </li>
             </ul>
         </nav>
     </aside>
 
     <!-- Main Content -->
-    <div class="main full-width">
+    <div class="main">
         <header class="topbar">
-            <button class="hamburger" aria-label="Toggle menu">☰</button>
             <div class="page-title">Dashboard</div>
             <nav class="nav-content">
                 <ul>
-                    <li><a href="{% url 'frontend:how_it_works' %}" class="how-it-works">How it Works</a></li>
-                    <li><a href="{% url 'frontend:notifications' %}" aria-label="View notifications"><img src="{% static 'images/icons/notifications.svg' %}" alt="" /></a></li>
-                    <li><a href="{% url 'frontend:profile' %}" aria-label="View profile"><img class="profile-image" src="{% if user.profile and user.profile.image %}{{ user.profile.image.url }}{% else %}https://ui-avatars.com/api/?name={{ user.get_full_name|default:user.username|urlencode }}&background=00A651&color=fff&size=128{% endif %}" alt="" loading="lazy" /></a></li>
+                    <li>
+                        <a href="{% url 'frontend:how_it_works' %}" class="how-it-works">How it Works</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'frontend:notifications' %}">
+                            <img src="{% static 'images/icons/notifications.svg' %}" alt="Notifications" />
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'frontend:profile' %}">
+                            <img class="profile-image" src="{% if user.profile and user.profile.image %}{{ user.profile.image.url }}{% else %}https://ui-avatars.com/api/?name={{ user.get_full_name|default:user.username }}&background=00A651&color=fff&size=128{% endif %}" alt="Profile" />
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </header>
         <main class="dashboard-content">
-            {% block content %}{% endblock %}
+            {% block content %}
+            <!-- Place your dashboard cards and plans here as shown in the previous message -->
+            {% endblock %}
         </main>
     </div>
 </div>
+
 <script>
-    document.querySelector('.hamburger').addEventListener('click', () => {
-        const sidebar = document.querySelector('.sidebar');
-        const main = document.querySelector('.main');
-        sidebar.classList.toggle('active');
-        main.classList.toggle('full-width');
+    // Mobile menu functionality
+    const layout = document.getElementById('dashboardLayout');
+    const menuToggle = document.getElementById('mobileMenuToggle');
+    const overlay = document.getElementById('mobileOverlay');
+
+    function toggleMobileMenu() {
+        layout.classList.toggle('mobile-menu-open');
+    }
+
+    function closeMobileMenu() {
+        layout.classList.remove('mobile-menu-open');
+    }
+
+    menuToggle.addEventListener('click', toggleMobileMenu);
+    overlay.addEventListener('click', closeMobileMenu);
+
+    // Close menu on window resize if open
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1100 && layout.classList.contains('mobile-menu-open')) {
+            closeMobileMenu();
+        }
     });
 </script>
+
 {% block extra_js %}{% endblock %}
 </body>
-</html>
+</html> 
