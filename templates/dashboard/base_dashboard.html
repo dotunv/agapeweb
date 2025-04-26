@@ -16,7 +16,12 @@
             --white: #FFFFFF;
             --light-blue: #9BBFF4;
             --sidebar-width: 270px;
-            --transition-speed: 0.3s;
+            --transition-speed: 0.4s;
+            --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+            --spacing-sm: clamp(8px, 1vw, 12px);
+            --spacing-md: clamp(16px, 2vw, 24px);
+            --spacing-lg: clamp(24px, 3vw, 32px);
+            --spacing-xl: clamp(32px, 4vw, 48px);
         }
         
         body {
@@ -39,13 +44,23 @@
             display: none;
             background: none;
             border: none;
-            padding: 0.5rem;
+            padding: var(--spacing-sm);
             cursor: pointer;
             position: fixed;
-            top: 1rem;
-            left: 1rem;
+            top: var(--spacing-md);
+            left: var(--spacing-md);
             z-index: 1000;
             color: var(--text-color);
+            border-radius: 8px;
+            transition: background-color 0.2s var(--transition-timing);
+        }
+
+        .mobile-menu-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .mobile-menu-toggle:active {
+            background-color: rgba(0, 0, 0, 0.1);
         }
 
         .mobile-menu-toggle svg {
@@ -61,13 +76,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 32px 0 0 0;
+            padding: var(--spacing-xl) 0 0 0;
             position: fixed;
             left: 0;
             top: 0;
             bottom: 0;
             z-index: 100;
-            transition: transform var(--transition-speed) ease;
+            transition: transform var(--transition-speed) var(--transition-timing);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .sidebar-header {
@@ -103,15 +120,21 @@
             color: var(--white);
             text-decoration: none;
             font-size: clamp(14px, 1.5vw, 16px);
-            padding: clamp(10px, 2vw, 14px) clamp(20px, 4vw, 32px);
-            border-radius: 15px;
-            transition: background 0.2s;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            margin: 0 var(--spacing-sm);
+            border-radius: 12px;
+            transition: all 0.2s var(--transition-timing);
         }
 
         .sidebar-nav a.active,
         .sidebar-nav a:hover,
         .logout-link:hover {
             background: rgba(255,255,255,0.12);
+        }
+
+        .sidebar-nav a:active,
+        .logout-link:active {
+            transform: scale(0.98);
         }
 
         /* Main Content Styles */
@@ -121,7 +144,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            transition: margin-left var(--transition-speed) ease;
+            transition: margin-left var(--transition-speed) var(--transition-timing);
         }
 
         .topbar {
@@ -129,8 +152,8 @@
             justify-content: space-between;
             align-items: center;
             background: var(--white);
-            padding: 0 clamp(16px, 4vw, 48px);
-            height: 80px;
+            padding: 0 var(--spacing-xl);
+            height: clamp(60px, 10vh, 80px);
             box-shadow: 0 2px 8px rgba(0,0,0,0.03);
             position: sticky;
             top: 0;
@@ -138,8 +161,9 @@
         }
 
         .page-title {
-            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-size: clamp(1.25rem, 2.5vw, 2rem);
             font-weight: 700;
+            transition: font-size 0.2s var(--transition-timing);
         }
 
         .nav-content ul {
@@ -166,9 +190,10 @@
         }
 
         .dashboard-content {
-            padding: clamp(20px, 4vw, 40px) clamp(16px, 4vw, 48px);
+            padding: var(--spacing-xl) var(--spacing-xl);
             background: var(--background-light);
             flex: 1;
+            transition: padding 0.2s var(--transition-timing);
         }
 
         /* Overlay for mobile menu */
@@ -185,49 +210,108 @@
             transition: opacity var(--transition-speed) ease;
         }
 
-        /* Responsive Styles */
+        /* Enhanced Responsive Breakpoints */
+        @media (max-width: 1400px) {
+            :root {
+                --sidebar-width: 250px;
+            }
+            
+            .page-title {
+                font-size: clamp(1.2rem, 2vw, 1.8rem);
+            }
+        }
+
         @media (max-width: 1100px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
             .mobile-menu-toggle {
-                display: block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .sidebar {
                 transform: translateX(-100%);
+                box-shadow: none;
+                width: min(85%, 320px);
             }
 
-            .main {
-                margin-left: 0;
+            .mobile-menu-open .sidebar {
+                transform: translateX(0);
+                box-shadow: 4px 0 8px rgba(0, 0, 0, 0.1);
             }
 
             .mobile-overlay {
-                display: block;
+                backdrop-filter: blur(2px);
+                transition: all var(--transition-speed) var(--transition-timing);
             }
 
-            /* Mobile menu open states */
-            .mobile-menu-open .sidebar {
-                transform: translateX(0);
+            .topbar {
+                padding: 0 var(--spacing-lg);
             }
 
-            .mobile-menu-open .mobile-overlay {
-                opacity: 1;
-            }
-
-            .mobile-menu-open .main {
-                margin-left: 0;
+            .dashboard-content {
+                padding: var(--spacing-lg);
             }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .how-it-works {
                 display: none;
             }
 
+            .nav-content ul {
+                gap: var(--spacing-md);
+            }
+
+            .sidebar {
+                width: min(75%, 300px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mobile-menu-toggle {
+                top: var(--spacing-sm);
+                left: var(--spacing-sm);
+            }
+
             .topbar {
-                height: 60px;
+                padding: 0 var(--spacing-md);
+                height: 56px;
+            }
+
+            .page-title {
+                font-size: clamp(1.1rem, 4vw, 1.3rem);
             }
 
             .dashboard-content {
-                padding: 16px 12px;
+                padding: var(--spacing-md);
+            }
+
+            .sidebar {
+                width: 85%;
+            }
+        }
+
+        /* Add smooth scroll behavior */
+        @media (prefers-reduced-motion: no-preference) {
+            .sidebar {
+                scroll-behavior: smooth;
+            }
+        }
+
+        /* Better touch handling for mobile */
+        @media (hover: none) {
+            .sidebar-nav a:hover,
+            .logout-link:hover {
+                background: none;
+            }
+
+            .sidebar-nav a:active,
+            .logout-link:active {
+                background: rgba(255,255,255,0.12);
             }
         }
     </style>
@@ -253,7 +337,7 @@
         <nav class="sidebar-nav">
             <ul>
                 <li>
-                    <a href="{% url 'frontend:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'dashboard:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                         <img src="{% static 'images/icons/dashboard.svg' %}" class="icon" alt="Dashboard" />
                         <span>Dashboard</span>
                     </a>
@@ -317,7 +401,7 @@
             <nav class="nav-content">
                 <ul>
                     <li>
-                        <a href="{% url 'frontend:how_it_works' %}" class="how-it-works">How it Works</a>
+                <a href="{% url 'frontend:how_it_works' %}" class="how-it-works">How it Works</a>
                     </li>
                     <li>
                         <a href="{% url 'frontend:notifications' %}">

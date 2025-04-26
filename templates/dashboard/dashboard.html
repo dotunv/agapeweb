@@ -4,187 +4,7 @@
 {% block title %}Dashboard - AgapeThrift{% endblock %}
 
 {% block extra_css %}
-<style>
-    .content-grid {
-        display: grid;
-        grid-template-columns: 600px 350px;
-        gap: 32px;
-    }
-    .main-cards {
-        display: flex;
-        flex-direction: column;
-        gap: 32px;
-    }
-    .balance-card {
-        background: linear-gradient(135deg, #00A651 0%, #009e4f 100%);
-        color: #fff;
-        padding: 32px;
-        border-radius: 16px;
-        margin-bottom: 0;
-    }
-    .balance-label {
-        font-size: 1rem;
-        opacity: 0.9;
-        margin-bottom: 8px;
-    }
-    .balance-amount {
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-    .balance-meta {
-        font-size: 0.95rem;
-        opacity: 0.85;
-    }
-    .current-plan {
-        background: #fff;
-        padding: 28px;
-        border-radius: 14px;
-        margin-bottom: 0;
-    }
-    .plan-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-    .plan-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-    .plan-badge {
-        background: rgba(0, 166, 81, 0.12);
-        color: #00A651;
-        padding: 4px 14px;
-        border-radius: 6px;
-        font-size: 1rem;
-        font-weight: 500;
-    }
-    .progress-text {
-        font-size: 1rem;
-        margin-bottom: 8px;
-    }
-    .progress-bar {
-        height: 5px;
-        background: #eee;
-        border-radius: 3px;
-        margin-bottom: 16px;
-        width: 100%;
-    }
-    .progress-fill {
-        height: 100%;
-        background: #00A651;
-        border-radius: 3px;
-    }
-    .plan-status {
-        font-size: 1rem;
-        color: #00A651;
-    }
-    .recent-subscriptions {
-        background: #fff;
-        padding: 28px;
-        border-radius: 14px;
-    }
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-    .section-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-    .view-all {
-        color: #00A651;
-        text-decoration: none;
-        font-size: 1rem;
-        padding: 4px 14px;
-        border-radius: 6px;
-        background: rgba(0, 166, 81, 0.12);
-        font-weight: 500;
-    }
-    .subscription-list {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-    .subscription-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .subscriber-name {
-        font-size: 1rem;
-        font-weight: 600;
-    }
-    .subscription-date {
-        font-size: 0.95rem;
-        color: #888;
-    }
-    .subscription-amount {
-        color: #00A651;
-        font-weight: 600;
-        font-size: 1rem;
-    }
-    .plans-section {
-        background: #fff;
-        padding: 28px;
-        border-radius: 14px;
-    }
-    .plans-title {
-        color: #888;
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 24px;
-    }
-    .plans-list {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-    }
-    .plan-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .plan-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-    .plan-name {
-        font-size: 1rem;
-        color: #333;
-        font-weight: 500;
-    }
-    .plan-price {
-        font-size: 0.95rem;
-        color: #888;
-    }
-    .subscribe-btn {
-        background: var(--light-blue);
-        color: #fff;
-        padding: 8px 22px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 1rem;
-        border: none;
-        cursor: pointer;
-        font-weight: 600;
-        transition: background 0.2s, opacity 0.2s;
-    }
-    .subscribe-btn:disabled,
-    .subscribe-btn.disabled {
-        background: #d3e3f7;
-        color: #aaa;
-        cursor: not-allowed;
-        opacity: 0.7;
-    }
-    .subscribe-btn:not(:disabled):hover {
-        opacity: 0.9;
-    }
-</style>
+{% include 'dashboard/dashboard_styles.html' %}
 {% endblock %}
 
 {% block content %}
@@ -193,29 +13,30 @@
         <!-- Balance Card -->
         <div class="balance-card">
             <div class="balance-label">Current Balance</div>
-            <div class="balance-amount">${{ balance|floatformat:2 }}</div>
+            <div class="balance-amount">${{ user_balance|floatformat:2 }}</div>
             <div class="balance-meta">Username: {{ user.username }}</div>
         </div>
 
         <!-- Current Plan -->
-        {% if has_plan %}
+        {% if current_plan %}
         <div class="current-plan">
             <div class="plan-header">
                 <div class="plan-title">Current Plan</div>
                 <div class="plan-badge">{{ current_plan.name }}</div>
             </div>
-            <div class="progress-text">{{ current_plan.progress_text }}</div>
+            <div class="progress-text">{{ current_plan.current_cycle }}/{{ current_plan.total_cycles }}</div>
             <div class="progress-bar">
-                <div class="progress-fill" style="width: '{{ current_plan.progress_percent }}%'" ></div>
+                <div class="progress-fill" style="width: {{ current_plan.progress_percentage }}%"></div>
             </div>
-            <div class="plan-status">Status: Active</div>
+            <div class="progress-note">{{ current_plan.withdrawal_note }}</div>
+            <div class="plan-status">Status: {{ current_plan.status }}</div>
         </div>
         {% else %}
         <div class="current-plan">
             <div class="plan-header">
-                <div class="plan-title">No Plan Selected</div>
+                <div class="plan-title">No Active Plan</div>
             </div>
-            <div class="plan-status" style="color: #e74c3c;">You have not picked a plan yet. Please select a plan from the right.</div>
+            <div class="plan-status" style="color: #e74c3c;">Please select a plan to get started</div>
         </div>
         {% endif %}
 
@@ -226,17 +47,21 @@
                 <a href="{% url 'frontend:subscriptions' %}" class="view-all">View all</a>
             </div>
             <div class="subscription-list">
-                {% for subscription in recent_subscriptions %}
-                <div class="subscription-item">
-                    <div class="subscription-info">
-                        <div class="subscriber-name">{{ subscription.user.username }}</div>
-                        <div class="subscription-date">{{ subscription.joined_at|date:"j M, Y" }}</div>
+                {% if recent_subscriptions %}
+                    {% for subscription in recent_subscriptions %}
+                    <div class="subscription-item">
+                        <div class="subscription-info">
+                            <div class="subscriber-name">{{ subscription.user.get_full_name|default:subscription.user.username }}</div>
+                            <div class="subscription-date">{{ subscription.created_at|date:"j M, Y" }}</div>
+                        </div>
+                        <div class="subscription-amount">+${{ subscription.amount|floatformat:2 }}</div>
                     </div>
-                    <div class="subscription-amount">+${{ subscription.amount|floatformat:2 }}</div>
-                </div>
-                {% empty %}
-                <div>No recent subscriptions.</div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="subscription-item">
+                        <div class="subscription-info">No recent subscriptions</div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -245,19 +70,25 @@
     <div class="plans-section">
         <h2 class="plans-title">Plans</h2>
         <div class="plans-list">
-            {% for plan in available_plans %}
-            <div class="plan-item">
-                <div class="plan-info">
-                    <div class="plan-name">{{ plan.name }}</div>
-                    <div class="plan-price">${{ plan.price|floatformat:2 }}/person</div>
+            {% if available_plans %}
+                {% for plan in available_plans %}
+                <div class="plan-item">
+                    <div class="plan-info">
+                        <div class="plan-name">{{ plan.name }}</div>
+                        <div class="plan-price">${{ plan.price|floatformat:2 }}/person</div>
+                    </div>
+                    {% if user_plan %}
+                        <button class="subscribe-btn disabled" disabled>Subscribe</button>
+                    {% else %}
+                        <a href="{% url 'frontend:subscribe_plan' plan.id %}" class="subscribe-btn">Subscribe</a>
+                    {% endif %}
                 </div>
-                {% if has_plan %}
-                <button class="subscribe-btn disabled" disabled>Subscribe</button>
-                {% else %}
-                <a href="{% url 'frontend:subscribe_plan' plan.id %}" class="subscribe-btn">Subscribe</a>
-                {% endif %}
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <div class="plan-item">
+                    <div class="plan-info">No plans available</div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

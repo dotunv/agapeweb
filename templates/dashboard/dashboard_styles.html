@@ -1,0 +1,308 @@
+<style>
+    .content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+        gap: 32px;
+        max-width: 100%;
+    }
+
+    .main-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    /* Balance Card */
+    .balance-card {
+        background: linear-gradient(135deg, #00A651 0%, #009e4f 100%);
+        color: #fff;
+        padding: 28px 32px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 166, 81, 0.15);
+    }
+
+    .balance-label {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin-bottom: 12px;
+    }
+
+    .balance-amount {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        line-height: 1.2;
+    }
+
+    .balance-meta {
+        font-size: 0.9rem;
+        opacity: 0.85;
+    }
+
+    /* Current Plan Card */
+    .current-plan {
+        background: #fff;
+        padding: 24px 28px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .plan-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .plan-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .plan-badge {
+        background: #f5f5f5;
+        color: #666;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .progress-text {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-bottom: 12px;
+        color: #333;
+    }
+
+    .progress-bar {
+        height: 6px;
+        background: #f0f0f0;
+        border-radius: 3px;
+        margin-bottom: 16px;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #00A651;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .progress-note {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 12px;
+    }
+
+    .plan-status {
+        font-size: 0.95rem;
+        color: #00A651;
+        font-weight: 500;
+    }
+
+    /* Recent Subscriptions */
+    .recent-subscriptions {
+        background: #fff;
+        padding: 24px 28px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .view-all {
+        background: #e8f5ff;
+        color: #00A651;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+
+    .view-all:hover {
+        background: #d9f0ff;
+    }
+
+    .subscription-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .subscription-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+    }
+
+    .subscription-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .subscriber-name {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .subscription-date {
+        font-size: 0.9rem;
+        color: #888;
+    }
+
+    .subscription-amount {
+        color: #00A651;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    /* Plans Section */
+    .plans-section {
+        background: #fff;
+        padding: 24px 28px;
+        border-radius: 12px;
+        height: 100%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .plans-title {
+        color: #666;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 24px;
+    }
+
+    .plans-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .plan-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .plan-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .plan-name {
+        font-size: 1rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .plan-price {
+        font-size: 0.9rem;
+        color: #888;
+    }
+
+    .subscribe-btn {
+        background: var(--light-blue);
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .subscribe-btn:not(:disabled):hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .subscribe-btn:disabled,
+    .subscribe-btn.disabled {
+        background: #e2e8f0;
+        color: #a0aec0;
+        cursor: not-allowed;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 1200px) {
+        .content-grid {
+            grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+            gap: 24px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .plans-section {
+            height: auto;
+        }
+
+        .balance-amount {
+            font-size: 2.2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .content-grid {
+            gap: 16px;
+        }
+
+        .main-cards {
+            gap: 16px;
+        }
+
+        .balance-card,
+        .current-plan,
+        .recent-subscriptions,
+        .plans-section {
+            padding: 20px;
+        }
+
+        .balance-amount {
+            font-size: 2rem;
+        }
+
+        .plan-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .subscription-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .subscription-amount {
+            align-self: flex-end;
+        }
+    }
+</style> 
