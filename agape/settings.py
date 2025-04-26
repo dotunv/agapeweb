@@ -232,34 +232,25 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
-# Provider specific settings
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': env('GOOGLE_CLIENT_ID', default=''),
-            'secret': env('GOOGLE_CLIENT_SECRET', default=''),
-            'key': ''
-        }
-    }
-}
-
-# Email settings (for development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# allauth settings
-ACCOUNT_LOGIN_METHODS = {'email'}  # Use email for authentication
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']  # * means required
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Require email verification
+# AllAuth configuration
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_RATE_LIMITS = {
-    'login': '5/m',  # 5 attempts per minute
-    'signup': '5/m',  # 5 attempts per minute
-    'password_reset': '5/m',  # 5 attempts per minute
-}
+ACCOUNT_USERNAME_MIN_LENGTH = 3
+ACCOUNT_ADAPTER = 'users.adapters.CustomAccountAdapter'
+ACCOUNT_ALLOW_SIGNUPS = True  # Set to False to disable new registrations
 
+# Login/Logout URLs
 LOGIN_REDIRECT_URL = 'frontend:dashboard'
 LOGOUT_REDIRECT_URL = 'frontend:home'
 LOGIN_URL = 'account_login'
+
+# Session settings
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_COOKIE_SECURE = env.bool('DJANGO_SESSION_COOKIE_SECURE', default=not DEBUG)
 
 # Rest Auth settings
 REST_AUTH = {
@@ -314,12 +305,8 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Session settings
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
-SESSION_COOKIE_SECURE = env.bool('DJANGO_SESSION_COOKIE_SECURE', default=True)
-
 # Security settings
-SECURE_SSL_REDIRECT = env.bool('DJANGO_SECURE_SSL_REDIRECT', default=True)
+SECURE_SSL_REDIRECT = env.bool('DJANGO_SECURE_SSL_REDIRECT', default=not DEBUG)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
@@ -453,16 +440,18 @@ if not DEBUG:
         release=env('SENTRY_RELEASE', default='1.0.0'),
         # Error sampling
         sample_rate=1.0,
-        # Custom tags
-        tags={
-            'app': 'agape',
-            'version': env('SENTRY_RELEASE', default='1.0.0'),
-        },
-        # Custom before_send hook
+        # Custom tags - fixed format to use set_tag in before_send instead
+        # tags={
+        #     'app': 'agape',
+        #     'version': env('SENTRY_RELEASE', default='1.0.0'),
+        # },
+        # Custom before_send hook with corrected tags implementation
         before_send=lambda event, hint: {
             **event,
             'tags': {
                 **event.get('tags', {}),
+                'app': 'agape',
+                'version': env('SENTRY_RELEASE', default='1.0.0'),
                 'custom_tag': 'value',
             }
         } if 'exception' in hint else event,
