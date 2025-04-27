@@ -1,23 +1,30 @@
 <style>
     .content-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-        gap: 32px;
+        grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+        gap: 48px;
         max-width: 100%;
+        padding: 0;
+        margin-right: var(--spacing-xl);
     }
 
     .main-cards {
         display: flex;
         flex-direction: column;
         gap: 24px;
+        width: 100%;
+        min-width: 0;
+        max-width: 500px;
     }
 
     /* Balance Card */
     .balance-card {
-        background: linear-gradient(135deg, #00A651 0%, #009e4f 100%);
+        /* background: linear-gradient(135deg, #00A651 0%, #009e4f 100%); */
+        background: linear-gradient(to bottom, #008B46 0%, #008B62 100%);
         color: #fff;
         padding: 28px 32px;
         border-radius: 12px;
+        width: 100%;
         box-shadow: 0 4px 12px rgba(0, 166, 81, 0.15);
     }
 
@@ -43,6 +50,7 @@
     .current-plan {
         background: #fff;
         padding: 24px 28px;
+        width: 100%;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
@@ -109,6 +117,7 @@
         background: #fff;
         padding: 24px 28px;
         border-radius: 12px;
+        width: 100%;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
@@ -183,6 +192,9 @@
         border-radius: 12px;
         height: 100%;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        min-width: 0;
+        width: 100%;
+        margin-right: var(--spacing-xl);
     }
 
     .plans-title {
@@ -196,24 +208,37 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
+        width: 100%;
     }
 
     .plan-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding: 12px;
+        border-radius: 8px;
+        background: #f8f9fa;
+        transition: background-color 0.2s ease;
+    }
+
+    .plan-item:hover {
+        background: #f0f2f5;
     }
 
     .plan-info {
         display: flex;
         flex-direction: column;
         gap: 4px;
+        min-width: 0; /* Prevents text overflow */
     }
 
     .plan-name {
         font-size: 1rem;
         color: #666;
         font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .plan-price {
@@ -232,6 +257,8 @@
         cursor: pointer;
         font-weight: 500;
         transition: all 0.2s ease;
+        white-space: nowrap; /* Prevents button text from wrapping */
+        margin-left: 16px; /* Add space between price and button */
     }
 
     .subscribe-btn:not(:disabled):hover {
@@ -247,10 +274,34 @@
     }
 
     /* Responsive Styles */
+    @media (max-width: 1400px) {
+        .content-grid {
+            gap: 32px;
+            margin-right: var(--spacing-lg);
+        }
+        
+        .plans-section {
+            margin-right: var(--spacing-lg);
+        }
+        
+        .main-cards {
+            max-width: 450px;
+        }
+    }
+
     @media (max-width: 1200px) {
         .content-grid {
-            grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 24px;
+            margin-right: var(--spacing-md);
+        }
+        
+        .plans-section {
+            margin-right: var(--spacing-md);
+        }
+        
+        .main-cards {
+            max-width: none;
         }
     }
 
@@ -258,10 +309,16 @@
         .content-grid {
             grid-template-columns: 1fr;
             gap: 24px;
+            margin-right: 0;
         }
 
         .plans-section {
             height: auto;
+            margin-right: 0;
+        }
+
+        .main-cards {
+            max-width: none;
         }
 
         .balance-amount {

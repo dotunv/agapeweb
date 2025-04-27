@@ -15,7 +15,7 @@
             --background-light: #F5F5F5;
             --white: #FFFFFF;
             --light-blue: #9BBFF4;
-            --sidebar-width: 270px;
+            --sidebar-width: 320px;
             --transition-speed: 0.4s;
             --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
             --spacing-sm: clamp(8px, 1vw, 12px);
@@ -213,7 +213,7 @@
         /* Enhanced Responsive Breakpoints */
         @media (max-width: 1400px) {
             :root {
-                --sidebar-width: 250px;
+                --sidebar-width: 300px;
             }
             
             .page-title {
@@ -314,6 +314,16 @@
                 background: rgba(255,255,255,0.12);
             }
         }
+
+        /* Add styles for the icons */
+        .sidebar-icon {
+            filter: brightness(0) invert(1); /* Makes the icon white */
+        }
+        
+        .topbar-icon {
+            width: 24px;
+            height: 24px;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -337,56 +347,56 @@
         <nav class="sidebar-nav">
             <ul>
                 <li>
-                    <a href="{% url 'dashboard:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                        <img src="{% static 'images/icons/dashboard.svg' %}" class="icon" alt="Dashboard" />
+                    <a href="{% url 'frontend:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <img src="{% static 'images/icons/dashboard.svg' %}" class="icon sidebar-icon" alt="Dashboard" />
                         <span>Dashboard</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'frontend:fund_account' %}" class="{% if request.resolver_match.url_name == 'fund_account' %}active{% endif %}">
-                        <img src="{% static 'images/icons/fund_account.svg' %}" class="icon" alt="Fund Account" />
+                        <img src="{% static 'images/icons/fund_account.svg' %}" class="icon sidebar-icon" alt="Fund Account" />
                         <span>Fund account</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'frontend:plans' %}" class="{% if request.resolver_match.url_name == 'plans' %}active{% endif %}">
-                        <img src="{% static 'images/icons/plans.svg' %}" class="icon" alt="Plans" />
+                        <img src="{% static 'images/icons/plans.svg' %}" class="icon sidebar-icon" alt="Plans" />
                         <span>Plans</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'frontend:subscriptions' %}" class="{% if request.resolver_match.url_name == 'subscriptions' %}active{% endif %}">
-                        <img src="{% static 'images/icons/subscriptions.svg' %}" class="icon" alt="Subscriptions" />
+                        <img src="{% static 'images/icons/subscriptions.svg' %}" class="icon sidebar-icon" alt="Subscriptions" />
                         <span>Subscriptions</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'frontend:referrals' %}" class="{% if request.resolver_match.url_name == 'referrals' %}active{% endif %}">
-                        <img src="{% static 'images/icons/referrals.svg' %}" class="icon" alt="Referrals" />
+                        <img src="{% static 'images/icons/referrals.svg' %}" class="icon sidebar-icon" alt="Referrals" />
                         <span>Referrals</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'frontend:notifications' %}" class="{% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
-                        <img src="{% static 'images/icons/notifications.svg' %}" class="icon" alt="Notifications" />
+                        <img src="{% static 'images/icons/notifications.svg' %}" class="icon sidebar-icon" alt="Notifications" />
                         <span>Notifications</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'frontend:withdrawal' %}" class="{% if request.resolver_match.url_name == 'withdrawal' %}active{% endif %}">
-                        <img src="{% static 'images/icons/withdrawals.svg' %}" class="icon" alt="Withdrawal" />
+                        <img src="{% static 'images/icons/withdrawals.svg' %}" class="icon sidebar-icon" alt="Withdrawal" />
                         <span>Withdrawal</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'frontend:profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                        <img src="{% static 'images/icons/profile.svg' %}" class="icon" alt="Profile" />
+                        <img src="{% static 'images/icons/profile.svg' %}" class="icon sidebar-icon" alt="Profile" />
                         <span>Profile</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'users:logout' %}" class="logout-link">
-                        <img src="{% static 'images/icons/logout.svg' %}" class="icon" alt="Logout" />
+                        <img src="{% static 'images/icons/logout.svg' %}" class="icon sidebar-icon" alt="Logout" />
                         <span>Logout</span>
                     </a>
                 </li>
@@ -405,7 +415,7 @@
                     </li>
                     <li>
                         <a href="{% url 'frontend:notifications' %}">
-                            <img src="{% static 'images/icons/notifications.svg' %}" alt="Notifications" />
+                            <img src="{% static 'images/icons/notifications.svg' %}" class="topbar-icon" alt="Notifications" />
                         </a>
                     </li>
                     <li>
