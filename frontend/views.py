@@ -132,11 +132,23 @@ def withdrawal(request):
 @login_required
 def profile(request):
     """User profile view."""
+    edit_mode = request.GET.get('edit') == 'true'
     if request.method == 'POST':
-        # Handle profile update here
+        user = request.user
+        # Update fields
+        user.first_name = request.POST.get('full_name', user.first_name)
+        user.username = request.POST.get('username', user.username)
+        user.email = request.POST.get('email', user.email)
+        user.phone_number = request.POST.get('phone', user.phone_number)
+        # Handle image upload
+        if 'image' in request.FILES:
+            user.profile_picture = request.FILES['image']
+        user.save()
         messages.success(request, 'Profile updated successfully!')
-        return redirect('profile')
-    return render(request, 'dashboard/profile.html')
+        return redirect('frontend:profile')
+    return render(request, 'dashboard/profile.html', {
+        'edit': edit_mode,
+    })
 
 def about(request):
     """About page view."""

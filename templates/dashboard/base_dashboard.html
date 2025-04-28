@@ -420,7 +420,7 @@
                     </li>
                     <li>
                         <a href="{% url 'frontend:profile' %}">
-                            <img class="profile-image" src="{% if user.profile and user.profile.image %}{{ user.profile.image.url }}{% else %}https://ui-avatars.com/api/?name={{ user.get_full_name|default:user.username }}&background=00A651&color=fff&size=128{% endif %}" alt="Profile" />
+                            <img class="profile-image" src="{% if user.profile and user.profile.image %}{{ user.profile.image.url }}{% else %}{% static 'images/profile-placeholder.svg' %}{% endif %}" alt="Profile" />
                         </a>
                     </li>
                 </ul>

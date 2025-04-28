@@ -46,7 +46,7 @@ class User(AbstractUser):
 
     # Google OAuth fields
     google_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
-    profile_picture = models.URLField(max_length=500, null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
 
     # Wallets for different subscription plans
     pre_starter_wallet = models.DecimalField(
