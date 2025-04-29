@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.generic import CreateView, UpdateView, ListView, DetailView
@@ -7,11 +7,21 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
 from .forms import UserRegistrationForm, UserUpdateForm
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.http import require_http_methods
 from .models import Notification
+from django.views.decorators.csrf import csrf_protect
+from django.urls import reverse
 
 User = get_user_model()
+
+@csrf_protect
+def logout_confirm(request):
+    """Show a confirmation page before logging out."""
+    if request.method == 'POST':
+        auth_logout(request)
+        return redirect('frontend:home')
+    return render(request, 'account/logout_confirm.html')
 
 def register(request):
     if request.method == 'POST':
