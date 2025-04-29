@@ -220,20 +220,46 @@ class Notification(models.Model):
     """
     Represents a notification for a user.
     """
+    NOTIFICATION_TYPES = [
+        ('info', 'Information'),
+        ('success', 'Success'),
+        ('warning', 'Warning'),
+        ('error', 'Error'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=200, blank=True)
     message = models.TextField()
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES, default='info')
     read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    notification_type = models.CharField(max_length=50, choices=[
-        ('SUBSCRIPTION', 'Subscription'),
-        ('WITHDRAWAL', 'Withdrawal'),
-        ('TRANSACTION', 'Transaction'),
-        ('REFERRAL', 'Referral'),
-        ('SYSTEM', 'System')
-    ])
+    link = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} - {self.notification_type} - {self.message[:50]}"
+        return f"{self.title or 'Notification'} - {self.user.username}"
+
+    @classmethod
+    def create_notification(cls, user, message, title=None, notification_type='info', link=None):
+        """
+        Create a new notification for a user.
+        """
+        notification = cls.objects.create(
+            user=user,
+            message=message,
+            title=title,
+            notification_type=notification_type,
+            link=link
+        )
+        
+        # Send WebSocket notification here if implemented
+        return notification
+
+    def mark_as_read(self):
+        """
+        Mark the notification as read.
+        """
+        self.read = True
+        self.save()

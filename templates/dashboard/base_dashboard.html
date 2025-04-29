@@ -187,6 +187,8 @@
             height: clamp(36px, 5vw, 44px);
             border-radius: 50%;
             object-fit: cover;
+            border: 2px solid #F5F7FA;
+            background: #E0E7EF;
         }
 
         .dashboard-content {
@@ -420,7 +422,7 @@
                     </li>
                     <li>
                         <a href="{% url 'frontend:profile' %}">
-                            <img class="profile-image" src="{% if user.profile and user.profile.image %}{{ user.profile.image.url }}{% else %}{% static 'images/profile-placeholder.svg' %}{% endif %}" alt="Profile" />
+                            <img class="profile-image" src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'images/profile-placeholder.svg' %}{% endif %}" alt="Profile" />
                         </a>
                     </li>
                 </ul>

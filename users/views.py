@@ -7,6 +7,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
 from .forms import UserRegistrationForm, UserUpdateForm
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from .models import Notification
 
 User = get_user_model()
 
@@ -59,3 +62,48 @@ class UserDetailView(LoginRequiredMixin, DetailView):
 
     def get_object(self):
         return self.request.user
+
+@login_required
+@require_http_methods(["POST"])
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read."""
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.mark_as_read()
+    return JsonResponse({'status': 'success'})
+
+@login_required
+@require_http_methods(["DELETE"])
+def delete_notification(request, notification_id):
+    """Delete a notification."""
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.delete()
+    return JsonResponse({'status': 'success'})
+
+@login_required
+@require_http_methods(["POST"])
+def mark_all_read(request):
+    """Mark all notifications as read."""
+    request.user.notifications.filter(read=False).update(read=True)
+    return JsonResponse({'status': 'success'})
+
+# Example of creating a notification
+def create_test_notification(request):
+    """Create a test notification (for development only)."""
+    if request.user.is_authenticated:
+        notification = Notification.create_notification(
+            user=request.user,
+            title="Test Notification",
+            message="This is a test notification message.",
+            notification_type='info'
+        )
+        return JsonResponse({
+            'status': 'success',
+            'notification': {
+                'id': notification.id,
+                'title': notification.title,
+                'message': notification.message,
+                'type': notification.notification_type,
+                'created_at': notification.created_at.isoformat()
+            }
+        })
+    return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=401)

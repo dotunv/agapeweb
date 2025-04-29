@@ -1,0 +1,271 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Notifications - AgapeThrift{% endblock %}
+
+{% block extra_css %}
+<style>
+.notifications-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notification-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    opacity: 1;
+    transform: translateX(0);
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification-item.unread {
+    background: #f0f9ff;
+    border-left: 4px solid var(--primary-color);
+}
+
+.notification-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.notification-time {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.notification-message {
+    color: #444;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.notification-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.notification-action {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.notification-action:hover {
+    background-color: rgba(0, 166, 81, 0.1);
+}
+
+.notification-action.delete {
+    color: #dc3545;
+}
+
+.notification-action.delete:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.empty-state-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+}
+
+.notification-item.removing {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .notifications-container {
+        padding: 16px;
+    }
+
+    .notification-item {
+        padding: 14px 16px;
+    }
+
+    .notification-title {
+        font-size: 1rem;
+    }
+
+    .notification-message {
+        font-size: 0.95rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="notification-list" id="notificationList">
+        {% if notifications %}
+            {% for notification in notifications %}
+            <div class="notification-item {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
+                <div class="notification-header">
+                    <h3 class="notification-title">{{ notification.title|default:"Notification" }}</h3>
+                    <span class="notification-time">{{ notification.created_at|timesince }} ago</span>
+                </div>
+                <p class="notification-message">{{ notification.message }}</p>
+                <div class="notification-actions">
+                    {% if not notification.read %}
+                    <button class="notification-action mark-read" onclick="markAsRead({{ notification.id }})">
+                        Mark as read
+                    </button>
+                    {% endif %}
+                    <button class="notification-action delete" onclick="deleteNotification({{ notification.id }})">
+                        Delete
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <img src="{% static 'images/icons/notifications.svg' %}" alt="No notifications" class="empty-state-icon">
+                <p>No notifications yet</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function markAsRead(notificationId) {
+    fetch(`/api/notifications/${notificationId}/mark-read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            const notification = document.querySelector(`[data-id="${notificationId}"]`);
+            notification.classList.remove('unread');
+            const markReadBtn = notification.querySelector('.mark-read');
+            if (markReadBtn) {
+                markReadBtn.remove();
+            }
+        }
+    });
+}
+
+function deleteNotification(notificationId) {
+    fetch(`/api/notifications/${notificationId}/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            const notification = document.querySelector(`[data-id="${notificationId}"]`);
+            notification.classList.add('removing');
+            setTimeout(() => {
+                notification.remove();
+                if (document.querySelectorAll('.notification-item').length === 0) {
+                    document.getElementById('notificationList').innerHTML = `
+                        <div class="empty-state">
+                            <img src="/static/images/icons/notifications.svg" alt="No notifications" class="empty-state-icon">
+                            <p>No notifications yet</p>
+                        </div>
+                    `;
+                }
+            }, 300);
+        }
+    });
+}
+
+// WebSocket connection for real-time notifications
+const ws = new WebSocket(`ws://${window.location.host}/ws/notifications/`);
+
+ws.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    if (data.type === 'notification') {
+        const notification = data.notification;
+        const notificationHtml = `
+            <div class="notification-item unread" data-id="${notification.id}">
+                <div class="notification-header">
+                    <h3 class="notification-title">${notification.title || 'Notification'}</h3>
+                    <span class="notification-time">just now</span>
+                </div>
+                <p class="notification-message">${notification.message}</p>
+                <div class="notification-actions">
+                    <button class="notification-action mark-read" onclick="markAsRead(${notification.id})">
+                        Mark as read
+                    </button>
+                    <button class="notification-action delete" onclick="deleteNotification(${notification.id})">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        const emptyState = document.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+        
+        document.getElementById('notificationList').insertAdjacentHTML('afterbegin', notificationHtml);
+    }
+};
+</script>
+{% endblock %} 

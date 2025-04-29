@@ -31,6 +31,36 @@
     margin-bottom: 18px;
     background: #E0E7EF;
     border: 3px solid #F5F7FA;
+    cursor: pointer;
+}
+.profile-avatar-wrapper {
+    position: relative;
+    margin-bottom: 18px;
+}
+.profile-avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+}
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    cursor: pointer;
+}
+.avatar-overlay span {
+    color: white;
+    font-size: 0.9rem;
+}
+.profile-avatar-input {
+    display: none;
 }
 .profile-name {
     font-size: 1.25rem;
@@ -93,10 +123,6 @@
     justify-content: flex-end;
     width: 100%;
 }
-.profile-edit-form input[type="file"] {
-    margin-bottom: 14px;
-    font-size: 0.98rem;
-}
 </style>
 {% endblock %}
 
@@ -105,7 +131,13 @@
     {% if edit %}
     <form class="profile-edit-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <img class="profile-avatar" src="{% if user.profile and user.profile.image %}{{ user.profile.image.url }}{% else %}{% static 'images/profile-placeholder.svg' %}{% endif %}" alt="Profile" />
+        <div class="profile-avatar-wrapper">
+            <img class="profile-avatar" id="avatar-preview" src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'images/profile-placeholder.svg' %}{% endif %}" alt="Profile" />
+            <label for="id_image" class="avatar-overlay">
+                <span>Change Photo</span>
+            </label>
+            <input type="file" id="id_image" name="image" accept="image/*" class="profile-avatar-input" onchange="previewImage(this);" />
+        </div>
         <label for="id_full_name">Full Name</label>
         <input type="text" id="id_full_name" name="full_name" value="{{ user.get_full_name|default:user.username }}" required />
         <label for="id_username">Username</label>
@@ -113,9 +145,7 @@
         <label for="id_email">Email</label>
         <input type="email" id="id_email" name="email" value="{{ user.email }}" required />
         <label for="id_phone">Phone Number</label>
-        <input type="tel" id="id_phone" name="phone" value="{{ user.profile.phone|default:'' }}" />
-        <label for="id_image">Profile Image</label>
-        <input type="file" id="id_image" name="image" accept="image/*" />
+        <input type="tel" id="id_phone" name="phone" value="{{ user.phone_number|default:'' }}" />
         <div class="form-actions">
             <button type="submit" class="save-profile-btn">Save</button>
             <a href="{% url 'frontend:profile' %}" class="cancel-edit-btn">Cancel</a>
@@ -123,11 +153,25 @@
     </form>
     {% else %}
     <div class="profile-card">
-        <img class="profile-avatar" src="{% if user.profile and user.profile.image %}{{ user.profile.image.url }}{% else %}{% static 'images/profile-placeholder.svg' %}{% endif %}" alt="Profile" />
+        <img class="profile-avatar" src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'images/profile-placeholder.svg' %}{% endif %}" alt="Profile" />
         <div class="profile-name">{{ user.get_full_name|default:user.username }}</div>
         <div class="profile-email">{{ user.email }}</div>
         <a href="{% url 'frontend:profile' %}?edit=true" class="edit-profile-btn">Edit Profile</a>
     </div>
     {% endif %}
 </div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            document.getElementById('avatar-preview').src = e.target.result;
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 {% endblock %} 
