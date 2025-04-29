@@ -16,6 +16,7 @@ from datetime import timedelta
 import environ
 from pythonjsonlogger import jsonlogger
 import logging
+import dj_database_url
 
 # Initialize environ
 env = environ.Env()
@@ -31,8 +32,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='your-secret-key-here')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DJANGO_DEBUG', default=False)
+DEBUG = os.getenv("DEBUG", "True") == "True"
+
+if DEBUG:
+    # Local development — do not force HTTPS
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    # Production — keep secure settings
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
@@ -106,7 +117,11 @@ WSGI_APPLICATION = 'agape.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db('DATABASE_URL', default='sqlite:///db.sqlite3')
+    'default': dj_database_url.parse(
+        'postgresql://agapedb_owner:npg_X8UZL1KswYbx@ep-lively-cloud-a89v9i2s-pooler.eastus2.azure.neon.tech/agapedb?sslmode=require',
+        conn_max_age=600,
+        ssl_require=True
+    )
 }
 
 
