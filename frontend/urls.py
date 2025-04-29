@@ -19,6 +19,7 @@ urlpatterns = [
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
     path('dashboard/fund-account/', views.fund_account, name='fund_account'),
+    path('dashboard/submit-payment/', views.submit_payment, name='submit_payment'),
     path('dashboard/plans/', views.plans, name='plans'),
     path('dashboard/subscriptions/', views.subscriptions, name='subscriptions'),
     path('dashboard/referrals/', views.referrals, name='referrals'),

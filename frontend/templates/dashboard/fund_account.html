@@ -1,0 +1,133 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Fund Account{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Fund Your Account</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <h5 class="alert-heading">Payment Instructions:</h5>
+                        <ol class="mb-0">
+                            <li>Send your payment to our wallet address below</li>
+                            <li>Copy the transaction ID from your wallet</li>
+                            <li>Fill in the form with the transaction details</li>
+                            <li>Submit the form and wait for verification</li>
+                        </ol>
+                    </div>
+
+                    <div class="wallet-info mb-4">
+                        <label class="form-label fw-bold">Wallet Address:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ wallet_address }}" id="walletAddress" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyWalletAddress()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="paymentForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Amount (in tokens)</label>
+                            <input type="number" class="form-control" id="amount" name="amount" step="0.000001" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid amount.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="transaction_id" class="form-label">Transaction ID</label>
+                            <input type="text" class="form-control" id="transaction_id" name="transaction_id" required>
+                            <div class="invalid-feedback">
+                                Please provide the transaction ID.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="token_id" class="form-label">Token ID</label>
+                            <input type="text" class="form-control" id="token_id" name="token_id" required>
+                            <div class="invalid-feedback">
+                                Please provide the token ID.
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Submit Payment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function copyWalletAddress() {
+    const walletAddress = document.getElementById('walletAddress');
+    walletAddress.select();
+    document.execCommand('copy');
+    alert('Wallet address copied to clipboard!');
+}
+
+document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Form validation
+    if (!this.checkValidity()) {
+        e.stopPropagation();
+        this.classList.add('was-validated');
+        return;
+    }
+
+    const formData = new FormData(this);
+    
+    try {
+        const response = await fetch('{% url "frontend:fund_account" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message,
+                confirmButtonColor: '#0d6efd'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '{% url "frontend:dashboard" %}';
+                }
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message,
+                confirmButtonColor: '#0d6efd'
+            });
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An unexpected error occurred. Please try again.',
+            confirmButtonColor: '#0d6efd'
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %} 

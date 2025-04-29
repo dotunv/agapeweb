@@ -157,35 +157,29 @@
 {% endblock %}
 
 {% block content %}
-<div class="notifications-container">
-    <div class="notification-list" id="notificationList">
-        {% if notifications %}
-            {% for notification in notifications %}
-            <div class="notification-item {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
-                <div class="notification-header">
-                    <h3 class="notification-title">{{ notification.title|default:"Notification" }}</h3>
-                    <span class="notification-time">{{ notification.created_at|timesince }} ago</span>
-                </div>
-                <p class="notification-message">{{ notification.message }}</p>
-                <div class="notification-actions">
+<div class="notifications-list">
+    {% if notifications %}
+        <ul class="notification-ul">
+        {% for notification in notifications %}
+            <li class="notification-li {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
+                <span class="notification-title">{{ notification.title|default:"Notification" }}</span>
+                <span class="notification-message">{{ notification.message }}</span>
+                <span class="notification-time">{{ notification.created_at|timesince }} ago</span>
+                <span class="notification-actions">
                     {% if not notification.read %}
-                    <button class="notification-action mark-read" onclick="markAsRead({{ notification.id }})">
-                        Mark as read
-                    </button>
+                        <button class="notification-action mark-read" title="Mark as read" onclick="markAsRead({{ notification.id }})">✓</button>
                     {% endif %}
-                    <button class="notification-action delete" onclick="deleteNotification({{ notification.id }})">
-                        Delete
-                    </button>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">
-                <img src="{% static 'images/icons/notifications.svg' %}" alt="No notifications" class="empty-state-icon">
-                <p>No notifications yet</p>
-            </div>
-        {% endif %}
-    </div>
+                    <button class="notification-action delete" title="Delete" onclick="deleteNotification({{ notification.id }})">🗑️</button>
+                </span>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <div class="empty-state">
+            <img src="{% static 'images/icons/notifications.svg' %}" alt="No notifications" class="empty-state-icon">
+            <p>No notifications yet</p>
+        </div>
+    {% endif %}
 </div>
 
 <script>

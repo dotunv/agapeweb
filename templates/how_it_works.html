@@ -1,0 +1,152 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}How it Works - AgapeThrift{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .howitworks-container {
+            background: #fff;
+            border-radius: 10px;
+            border: 2px solid #00A651;
+            max-width: 900px;
+            margin: 32px auto 0 auto;
+            padding: 32px 18px 24px 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        .howitworks-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 32px;
+        }
+        .howitworks-table th, .howitworks-table td {
+            padding: 10px 8px;
+            text-align: left;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+        .howitworks-table th {
+            font-weight: 700;
+            font-size: 1.08rem;
+            color: #111;
+            border-bottom: none;
+        }
+        .howitworks-table td {
+            font-size: 1.05rem;
+            color: #111;
+            border-bottom: none;
+        }
+        .howitworks-table tr td {
+            vertical-align: top;
+        }
+        .howitworks-title {
+            display: none;
+        }
+        .howitworks-steps {
+            margin-top: 16px;
+        }
+        .howitworks-steps h2 {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            color: #111;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+        .howitworks-steps ol {
+            font-size: 1.18rem;
+            color: #111;
+            font-weight: 600;
+            max-width: 700px;
+            margin: 0 auto;
+            padding-left: 1.2em;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+        .howitworks-steps ol li {
+            margin-bottom: 10px;
+        }
+        @media (max-width: 700px) {
+            .howitworks-container {
+                padding: 10px 2vw;
+            }
+            .howitworks-table th, .howitworks-table td {
+                padding: 7px 2px;
+                font-size: 0.97rem;
+            }
+            .howitworks-steps h2 {
+                font-size: 1.1rem;
+            }
+            .howitworks-steps ol {
+                font-size: 1rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="howitworks-container">
+    <table class="howitworks-table">
+        <thead>
+            <tr>
+                <th>Plan</th>
+                <th>Total Received</th>
+                <th>Deductions</th>
+                <th>Available for Withdrawal</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Pre-Starter Plan ($10)</td>
+                <td>$80<br><span style="font-size:0.98em;color:#111;">(from 8 members)</span></td>
+                <td>- $25 for Starter<br>- $30 maintenance</td>
+                <td>$25</td>
+            </tr>
+            <tr>
+                <td>Starter Plan ($25)</td>
+                <td>$200<br><span style="font-size:0.98em;color:#111;">(from 8 members)</span></td>
+                <td>- $100 for Basic 1<br>- $50 maintenance</td>
+                <td>$50</td>
+            </tr>
+            <tr>
+                <td>Basic 1 ($100)</td>
+                <td>$1,300<br><span style="font-size:0.98em;color:#111;">(from 13 members)</span></td>
+                <td>1/13 ($100) for repurchase (12 times)</td>
+                <td>$1,000</td>
+            </tr>
+            <tr>
+                <td>Basic 2 ($500)</td>
+                <td>$6,500<br><span style="font-size:0.98em;color:#111;">(from 13 members)</span></td>
+                <td>1/13 ($500) for repurchase (12 times)</td>
+                <td>$5,000</td>
+            </tr>
+            <tr>
+                <td>Standard ($1,000)</td>
+                <td>$13,000<br><span style="font-size:0.98em;color:#111;">(from 13 members)</span></td>
+                <td>1/13 ($1,000) for repurchase (12 times)</td>
+                <td>$10,000</td>
+            </tr>
+            <tr>
+                <td>Ultimate 1 ($2,500)</td>
+                <td>$32,500<br><span style="font-size:0.98em;color:#111;">(from 13 members)</span></td>
+                <td>1/13 ($2,500) for repurchase (12 times)</td>
+                <td>$25,000</td>
+            </tr>
+            <tr>
+                <td>Ultimate 2 ($5,000)</td>
+                <td>$65,000<br><span style="font-size:0.98em;color:#111;">(from 13 members)</span></td>
+                <td>1/13 ($5,000) for repurchase (12 times)</td>
+                <td>$50,000</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="howitworks-steps">
+        <h2>How it Works</h2>
+        <ol>
+            <li>Subscribe to a plan and enter a queue.</li>
+            <li>As new members join, you move up the queue.</li>
+            <li>When you reach the top, you receive contributions from others</li>
+            <li>Some deductions apply for repurchase and maintenance.</li>
+            <li>The rest is available for withdrawal.</li>
+        </ol>
+    </div>
+</div>
+{% endblock %} 

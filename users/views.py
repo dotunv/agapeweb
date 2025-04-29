@@ -87,6 +87,42 @@ def mark_all_read(request):
     return JsonResponse({'status': 'success'})
 
 # Example of creating a notification
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+import json
+
+@require_POST
+@login_required
+def create_notification(request):
+    """Create a notification for the authenticated user."""
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        title = data.get('title')
+        message = data.get('message')
+        notification_type = data.get('type', 'info')
+        if not message:
+            return JsonResponse({'status': 'error', 'message': 'Message is required.'}, status=400)
+        notification = Notification.create_notification(
+            user=request.user,
+            title=title,
+            message=message,
+            notification_type=notification_type
+        )
+        return JsonResponse({
+            'status': 'success',
+            'notification': {
+                'id': notification.id,
+                'title': notification.title,
+                'message': notification.message,
+                'type': notification.notification_type,
+                'created_at': notification.created_at.isoformat()
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+# (keep the test view as well)
 def create_test_notification(request):
     """Create a test notification (for development only)."""
     if request.user.is_authenticated:

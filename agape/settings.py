@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'users',
     'subscriptions',
     'transactions',
+    'frontend',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',

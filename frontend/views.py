@@ -5,6 +5,10 @@ from django.contrib import messages
 from users.models import User
 from subscriptions.models import Subscription, Plan
 from transactions.models import Transaction
+from django.http import JsonResponse
+from .models import Payment
+from decimal import Decimal
+import json
 
 def home(request):
     """Home page view."""
@@ -73,15 +77,66 @@ def dashboard(request):
     }
     return render(request, 'dashboard/dashboard.html', context)
 
+WALLET_ADDRESS = "0xF6823b403aC8d2A682CdF8b47299A85AaD8265ADC"
+
 @login_required
 def fund_account(request):
-    """Fund account view."""
-    if request.method == 'POST':
-        amount = request.POST.get('amount')
-        # Handle payment processing here
-        messages.success(request, f'Successfully funded account with ${amount}')
-        return redirect('frontend:dashboard')
-    return render(request, 'dashboard/fund_account.html')
+    if request.method == 'GET':
+        context = {
+            'wallet_address': WALLET_ADDRESS
+        }
+        return render(request, 'dashboard/fund_account.html', context)
+    
+    elif request.method == 'POST':
+        try:
+            amount = Decimal(request.POST.get('amount', '0'))
+            transaction_id = request.POST.get('transaction_id', '').strip()
+            token_id = request.POST.get('token_id', '').strip()
+
+            if not all([amount, transaction_id, token_id]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Please fill in all required fields.'
+                }, status=400)
+
+            if amount <= 0:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Amount must be greater than 0.'
+                }, status=400)
+
+            # Check if transaction_id is unique
+            if Payment.objects.filter(transaction_id=transaction_id).exists():
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Transaction ID already exists.'
+                }, status=400)
+
+            # Create new payment record
+            payment = Payment.objects.create(
+                user=request.user,
+                amount=amount,
+                transaction_id=transaction_id,
+                token_id=token_id,
+                status='pending'
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Payment submitted successfully. Our team will verify your transaction.',
+                'payment_id': payment.id
+            })
+
+        except (ValueError, decimal.InvalidOperation):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid amount provided.'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'An unexpected error occurred. Please try again.'
+            }, status=500)
 
 @login_required
 def plans(request):
@@ -201,3 +256,71 @@ def terms(request):
 def how_it_works(request):
     """How it works view."""
     return render(request, 'how_it_works.html')
+
+@login_required
+def submit_payment(request):
+    """Handle payment submission."""
+    if request.method != 'POST':
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Only POST method is allowed.'
+        }, status=405)
+
+    try:
+        # Parse JSON data from request body
+        data = json.loads(request.body)
+        amount = Decimal(data.get('amount_paid', '0'))
+        transaction_id = data.get('transaction_id', '').strip()
+        token_id = data.get('token_id', '').strip()
+
+        # Validate required fields
+        if not all([amount, transaction_id, token_id]):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Please fill in all required fields.'
+            }, status=400)
+
+        # Validate amount
+        if amount <= 0:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Amount must be greater than 0.'
+            }, status=400)
+
+        # Check if transaction_id is unique
+        if Payment.objects.filter(transaction_id=transaction_id).exists():
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Transaction ID already exists.'
+            }, status=400)
+
+        # Create new payment record
+        payment = Payment.objects.create(
+            user=request.user,
+            amount=amount,
+            transaction_id=transaction_id,
+            token_id=token_id,
+            status='pending'
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Payment submitted successfully. Our team will verify your transaction.',
+            'payment_id': payment.id
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid JSON data.'
+        }, status=400)
+    except (ValueError, decimal.InvalidOperation):
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid amount provided.'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'An unexpected error occurred. Please try again.'
+        }, status=500)

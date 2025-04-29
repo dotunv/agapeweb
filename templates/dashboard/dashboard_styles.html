@@ -214,12 +214,12 @@
         align-items: center;
         padding: 12px;
         border-radius: 8px;
-        background: #f8f9fa;
+        background: #e6f9f0;
         transition: background-color 0.2s ease;
     }
 
     .plan-item:hover {
-        background: #f0f2f5;
+        background: #ccf3e1;
     }
 
     .plan-info {
@@ -231,36 +231,39 @@
 
     .plan-name {
         font-size: 1rem;
-        color: #666;
-        font-weight: 500;
+        color: var(--primary-color);
+        font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
     .plan-price {
-        font-size: 0.9rem;
-        color: #888;
+        font-size: 0.95rem;
+        color: var(--primary-dark);
+        font-weight: 500;
     }
 
     .subscribe-btn {
-        background: var(--light-blue);
+        background: var(--primary-color);
         color: #fff;
-        padding: 8px 20px;
+        padding: 8px 24px;
         border-radius: 6px;
         text-decoration: none;
-        font-size: 0.9rem;
+        font-size: 1rem;
         border: none;
         cursor: pointer;
-        font-weight: 500;
+        font-weight: 600;
         transition: all 0.2s ease;
-        white-space: nowrap; /* Prevents button text from wrapping */
-        margin-left: 16px; /* Add space between price and button */
+        white-space: nowrap;
+        margin-left: 16px;
+        box-shadow: 0 2px 8px rgba(0,166,81,0.10);
     }
 
     .subscribe-btn:not(:disabled):hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
+        background: var(--primary-dark);
+        opacity: 1;
+        transform: translateY(-2px) scale(1.03);
     }
 
     .subscribe-btn:disabled,
