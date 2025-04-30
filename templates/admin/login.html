@@ -1,0 +1,131 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Log in | {{ site_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #f8f9fa;
+    }
+    
+    .login-container {
+        max-width: 28rem;
+        margin: 4rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .login-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .login-header img {
+        height: 40px;
+        margin-bottom: 1rem;
+    }
+    
+    .login-header h1 {
+        font-size: 1.5rem;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .login-form {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #666;
+    }
+    
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        transition: border-color 0.15s ease-in-out;
+    }
+    
+    .form-control:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+    
+    .submit-row {
+        margin-top: 1.5rem;
+    }
+    
+    .submit-row input[type="submit"] {
+        display: block;
+        width: 100%;
+        padding: 0.75rem;
+        background: #1a1a1a;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.15s ease-in-out;
+    }
+    
+    .submit-row input[type="submit"]:hover {
+        background: #333;
+    }
+    
+    .errornote {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 4px;
+        color: #856404;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-header">
+        <img src="{% static 'images/logo.png' %}" alt="{{ site_header }}">
+        <h1>{{ site_header }}</h1>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="errornote">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="post" id="login-form" class="login-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_username">Username:</label>
+            <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+        </div>
+        <div class="form-group">
+            <label for="id_password">Password:</label>
+            <input type="password" name="password" id="id_password" class="form-control" required>
+        </div>
+        <div class="submit-row">
+            <input type="submit" value="Log in">
+            <input type="hidden" name="next" value="{{ next }}">
+        </div>
+    </form>
+</div>
+{% endblock %} 

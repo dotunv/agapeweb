@@ -6,44 +6,125 @@ from transactions.models import Transaction, Withdrawal
 from decimal import Decimal
 from .decorators import admin_required
 from django.conf import settings
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
+from django.urls import reverse
+from django.db.models import Sum
+from django.utils import timezone
+from datetime import timedelta
+
+def admin_login(request):
+    """Admin login view."""
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect('admin:dashboard')
+        
+    form = AuthenticationForm()
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None and user.is_staff:
+                login(request, user)
+                next_url = request.GET.get('next', reverse('admin:dashboard'))
+                return redirect(next_url)
+            else:
+                messages.error(request, 'Please enter a correct username and password for a staff account.')
+        else:
+            messages.error(request, 'Invalid username or password.')
+
+    context = {
+        'form': form,
+        'site_header': 'AgapeThrift Administration',
+        'site_title': 'AgapeThrift Admin',
+    }
+    return render(request, 'admin/login.html', context)
 
 @admin_required
 def admin_dashboard(request):
     """Admin dashboard view showing overview of system."""
-    if request.method == 'POST':
-        try:
-            new_user_count = int(request.POST.get('total_users', 0))
-            if new_user_count < 0:
-                messages.error(request, 'User count cannot be negative')
-            else:
-                # Store the user count in settings or cache
-                with open('user_count.txt', 'w') as f:
-                    f.write(str(new_user_count))
-                messages.success(request, f'Total users updated to {new_user_count}')
-                return redirect('admin:dashboard')
-        except ValueError:
-            messages.error(request, 'Please enter a valid number')
-    
+    # Get total users count
     try:
         with open('user_count.txt', 'r') as f:
             total_users = int(f.read().strip())
     except (FileNotFoundError, ValueError):
-        total_users = 10  # Default value
+        total_users = User.objects.count()
         with open('user_count.txt', 'w') as f:
             f.write(str(total_users))
     
-    # Get all users for the table
-    users = User.objects.all().order_by('-date_joined')
-    
-    # Get statistics
-    total_withdrawals = Withdrawal.objects.count()
+    # Get deposits and withdrawals statistics
     total_deposits = Transaction.objects.filter(transaction_type='deposit').count()
+    total_deposits_amount = Transaction.objects.filter(
+        transaction_type='deposit'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    
+    total_withdrawals = Withdrawal.objects.count()
+    total_withdrawals_amount = Withdrawal.objects.aggregate(
+        total=Sum('amount')
+    )['total'] or Decimal('0.00')
+    
+    # Calculate net revenue (deposits - withdrawals)
+    net_revenue = total_deposits_amount - total_withdrawals_amount
+    
+    # Get recent activities
+    recent_activities = []
+    
+    # Add recent deposits
+    recent_deposits = Transaction.objects.filter(
+        transaction_type='deposit'
+    ).order_by('-created_at')[:5]
+    for deposit in recent_deposits:
+        recent_activities.append({
+            'type': 'deposit',
+            'user': deposit.user.username,
+            'action': 'made a deposit',
+            'amount': deposit.amount,
+            'timestamp': deposit.created_at
+        })
+    
+    # Add recent withdrawals
+    recent_withdrawals = Withdrawal.objects.order_by('-created_at')[:5]
+    for withdrawal in recent_withdrawals:
+        recent_activities.append({
+            'type': 'withdrawal',
+            'user': withdrawal.user.username,
+            'action': 'requested withdrawal',
+            'amount': withdrawal.amount,
+            'timestamp': withdrawal.created_at
+        })
+    
+    # Sort combined activities by timestamp
+    recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+    recent_activities = recent_activities[:5]
+    
+    # Get quick stats
+    today = timezone.now()
+    start_of_day = today.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    new_users_count = User.objects.filter(
+        date_joined__gte=start_of_day
+    ).count()
+    
+    active_users_count = User.objects.filter(
+        last_login__gte=start_of_day
+    ).count()
+    
+    pending_withdrawals = Withdrawal.objects.filter(
+        status='pending'
+    ).count()
     
     context = {
         'total_users': total_users,
-        'total_withdrawals': total_withdrawals,
         'total_deposits': total_deposits,
-        'users': users,  # Add users to the context
+        'total_deposits_amount': total_deposits_amount,
+        'total_withdrawals': total_withdrawals,
+        'total_withdrawals_amount': total_withdrawals_amount,
+        'net_revenue': net_revenue,
+        'recent_activities': recent_activities,
+        'new_users_count': new_users_count,
+        'active_users_count': active_users_count,
+        'pending_withdrawals': pending_withdrawals,
     }
     return render(request, 'admin/dashboard.html', context)
 
