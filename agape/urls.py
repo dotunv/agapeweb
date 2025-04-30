@@ -19,15 +19,17 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
-
-from agape.admin import admin_site
+from frontend import admin_urls
 
 urlpatterns = [
     # Frontend URLs
-    path('', include('frontend.urls')),
+    path('', include('frontend.urls', namespace='frontend')),
     
-    # Admin
-    path('admin/', admin_site.urls),
+    # Custom Admin Panel
+    path('admin/', include((admin_urls.urlpatterns, 'admin'), namespace='admin')),
+    
+    # Django Admin (optional, you can remove if not needed)
+    path('django-admin/', admin.site.urls),
     
     # Authentication URLs
     path('accounts/', include('allauth.urls')),

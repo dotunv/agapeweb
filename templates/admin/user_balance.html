@@ -1,0 +1,148 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Manage User Balance - AgapeThrift{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Manage User Balance</h1>
+    <a href="{% url 'frontend:manage_users' %}" class="btn btn-primary">Back to Users</a>
+</div>
+
+<div class="user-info-card card">
+    <div class="user-info">
+        <div class="info-group">
+            <label>Username</label>
+            <div class="info-value">{{ user.username }}</div>
+        </div>
+        <div class="info-group">
+            <label>Email</label>
+            <div class="info-value">{{ user.email }}</div>
+        </div>
+        <div class="info-group">
+            <label>Current Balance</label>
+            <div class="info-value balance">${{ user.balance|floatformat:2 }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="balance-actions">
+    <div class="card">
+        <h2 class="card-title">Add Money</h2>
+        <form method="post" class="balance-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="add-amount">Amount to Add</label>
+                <div class="input-group">
+                    <span class="input-prefix">$</span>
+                    <input type="number" id="add-amount" name="amount" step="0.01" min="0" required class="form-input">
+                </div>
+            </div>
+            <button type="submit" name="action" value="add" class="btn btn-primary">Add Money</button>
+        </form>
+    </div>
+    
+    <div class="card">
+        <h2 class="card-title">Remove Money</h2>
+        <form method="post" class="balance-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="remove-amount">Amount to Remove</label>
+                <div class="input-group">
+                    <span class="input-prefix">$</span>
+                    <input type="number" id="remove-amount" name="amount" step="0.01" min="0" max="{{ user.balance }}" required class="form-input">
+                </div>
+            </div>
+            <button type="submit" name="action" value="remove" class="btn btn-danger">Remove Money</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+    }
+    
+    .info-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .info-group label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    
+    .info-value.balance {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+    
+    .balance-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--text-color);
+    }
+    
+    .balance-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .form-group label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    
+    .input-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-prefix {
+        padding: 0.5rem 0.75rem;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        border-right: none;
+        border-radius: 6px 0 0 6px;
+        color: var(--text-light);
+    }
+    
+    .form-input {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 0 6px 6px 0;
+        font-size: 1rem;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}

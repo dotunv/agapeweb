@@ -1,0 +1,79 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Manage Deposits - AgapeThrift{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Manage Deposits</h1>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for deposit in page_obj %}
+                <tr>
+                    <td>{{ deposit.user.username }}</td>
+                    <td>{{ deposit.created_at|date:"M d, Y H:i" }}</td>
+                    <td>${{ deposit.amount|floatformat:2 }}</td>
+                    <td>{{ deposit.description }}</td>
+                    <td>
+                        <span class="status-badge status-{{ deposit.status }}">
+                            {{ deposit.status|title }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-completed {
+        background: rgba(40, 167, 69, 0.1);
+        color: var(--success);
+    }
+    
+    .status-failed {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--danger);
+    }
+    
+    .status-pending {
+        background: rgba(255, 193, 7, 0.1);
+        color: var(--warning);
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,276 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - AgapeThrift{% endblock %}
+
+{% block content %}
+<!-- Top Navigation -->
+<nav class="top-nav">
+    <div class="logo">
+        <img src="{% static 'images/logo.png' %}" alt="A" />
+    </div>
+    <div class="nav-links">
+        <a href="#" class="nav-link active">Users</a>
+        <a href="#" class="nav-link">Withdrawal</a>
+        <a href="#" class="nav-link">Deposit</a>
+    </div>
+</nav>
+
+<div class="container">
+    <!-- Total Users Section -->
+    <div class="user-count">
+        <h2>Total Number of Users</h2>
+        <div class="stat-value-container">
+            <div class="stat-value" id="userCount">{{ total_users }}</div>
+            <button class="edit-btn" onclick="toggleEditMode()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+            </button>
+        </div>
+        <form method="post" id="editForm" style="display: none;">
+            {% csrf_token %}
+            <input type="number" name="total_users" value="{{ total_users }}" min="0">
+            <button type="submit">Save</button>
+            <button type="button" onclick="toggleEditMode()">Cancel</button>
+        </form>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <div class="filter-buttons">
+            <button>Date ▼</button>
+            <button>Plan ▼</button>
+            <button>Status ▼</button>
+        </div>
+        <div class="search">
+            <input type="text" placeholder="Search">
+            <button class="view-btn">View</button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username ▼</th>
+                    <th>Date ▼</th>
+                    <th>Time</th>
+                    <th>Pos.</th>
+                    <th>Bal.</th>
+                    <th>Amount</th>
+                    <th>Plan ▼</th>
+                    <th>Auto Sub</th>
+                    <th>Status ▼</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.date_joined|date:"d M, Y" }}</td>
+                    <td>{{ user.date_joined|time:"H:i" }}</td>
+                    <td>{{ forloop.counter }}</td>
+                    <td>${{ user.balance }}</td>
+                    <td>$100</td>
+                    <td>Basic 1</td>
+                    <td>0</td>
+                    <td><span class="status active">Active</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #f8f9fa;
+        margin: 0;
+        padding: 0;
+    }
+
+    .top-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+        background: white;
+        margin-bottom: 2rem;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem 1.5rem;
+        text-decoration: none;
+        color: #666;
+        border-radius: 20px;
+    }
+
+    .nav-link.active {
+        background: #1a1a1a;
+        color: white;
+    }
+
+    .container {
+        padding: 0 2rem;
+    }
+
+    .user-count {
+        margin-bottom: 2rem;
+    }
+
+    .user-count h2 {
+        font-size: 1.1rem;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 500;
+    }
+
+    .filters {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .filter-buttons button {
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .search {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .search input {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        min-width: 300px;
+    }
+
+    .view-btn {
+        padding: 0.5rem 2rem;
+        background: #9DB2BF;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    th {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.875rem;
+    }
+
+    .status.active {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .edit-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+    }
+
+    #editForm {
+        margin-top: 1rem;
+    }
+
+    #editForm input {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-right: 0.5rem;
+    }
+
+    #editForm button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    #editForm button[type="submit"] {
+        background: #2e7d32;
+        color: white;
+    }
+
+    #editForm button[type="button"] {
+        background: #f5f5f5;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleEditMode() {
+    const userCount = document.getElementById('userCount');
+    const editForm = document.getElementById('editForm');
+    const isEditing = editForm.style.display !== 'none';
+    
+    if (isEditing) {
+        userCount.style.display = 'block';
+        editForm.style.display = 'none';
+    } else {
+        userCount.style.display = 'none';
+        editForm.style.display = 'block';
+        editForm.querySelector('input').focus();
+    }
+}
+</script>
+{% endblock %} 

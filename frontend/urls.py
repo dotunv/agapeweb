@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, admin_views
 
 app_name = 'frontend'
 
@@ -27,4 +27,12 @@ urlpatterns = [
     path('dashboard/notifications/', views.notifications, name='notifications'),
     path('dashboard/withdrawal/', views.withdrawal, name='withdrawal'),
     path('dashboard/profile/', views.profile, name='profile'),
+    
+    # Admin URLs
+    path('admin/dashboard/', admin_views.admin_dashboard, name='admin_dashboard'),
+    path('admin/users/', admin_views.manage_users, name='manage_users'),
+    path('admin/withdrawals/', admin_views.manage_withdrawals, name='manage_withdrawals'),
+    path('admin/deposits/', admin_views.manage_deposits, name='manage_deposits'),
+    path('admin/user/<int:user_id>/balance/', admin_views.user_balance, name='user_balance'),
+    path('admin/withdrawal/<int:withdrawal_id>/process/', admin_views.process_withdrawal, name='process_withdrawal'),
 ] 

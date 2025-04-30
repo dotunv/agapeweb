@@ -1,0 +1,139 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Manage Withdrawals - AgapeThrift{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Manage Withdrawals</h1>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Wallet Address</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for withdrawal in page_obj %}
+                <tr>
+                    <td>{{ withdrawal.user.username }}</td>
+                    <td>{{ withdrawal.created_at|date:"M d, Y H:i" }}</td>
+                    <td>${{ withdrawal.amount|floatformat:2 }}</td>
+                    <td>
+                        <div class="wallet-address">
+                            {{ withdrawal.wallet_address }}
+                            <button class="copy-btn" onclick="copyToClipboard('{{ withdrawal.wallet_address }}')">
+                                Copy
+                            </button>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ withdrawal.status }}">
+                            {{ withdrawal.status|title }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if withdrawal.status == 'pending' %}
+                        <form method="post" action="{% url 'frontend:process_withdrawal' withdrawal.id %}" class="action-buttons">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="approve" class="btn btn-primary btn-sm">
+                                Approve
+                            </button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
+                                Reject
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .wallet-address {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+    
+    .copy-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        background: #f0f0f0;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .copy-btn:hover {
+        background: #e0e0e0;
+    }
+    
+    .status-pending {
+        background: rgba(255, 193, 7, 0.1);
+        color: var(--warning);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+            btn.textContent = originalText;
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Failed to copy text: ', err);
+    });
+}
+</script>
+{% endblock %} 
