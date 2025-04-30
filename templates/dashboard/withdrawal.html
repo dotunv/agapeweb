@@ -1,0 +1,297 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Withdrawal - AgapeThrift{% endblock %}
+
+{% block extra_css %}
+    {% include 'dashboard/dashboard_styles.html' %}
+    <style>
+        .withdrawal-section {
+            max-width: 800px;
+            margin: 48px auto;
+            padding: 0 24px;
+        }
+
+        .withdrawal-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .withdrawal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #222;
+            margin-bottom: 8px;
+        }
+
+        .balance-info {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .balance-amount {
+            color: #00a651;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666666' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        .form-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .amount-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .amount-to-receive {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #eee;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #00a651;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 16px;
+        }
+
+        .submit-btn:hover {
+            background: #008c44;
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Error states */
+        .form-input.error,
+        .form-select.error {
+            border: 1px solid #ff4444;
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        /* Messages */
+        .messages {
+            margin-bottom: 24px;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .message.error {
+            background: #ffe5e5;
+            color: #ff4444;
+        }
+
+        .message.success {
+            background: #e5ffe5;
+            color: #00a651;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="withdrawal-section">
+    <div class="withdrawal-card">
+        <h2 class="withdrawal-title">WITHDRAWAL</h2>
+
+        <!-- {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+         -->
+        <form method="post" id="withdrawalForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label class="form-label">Wallet Address</label>
+                <input type="text" name="wallet_address" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Account to Withdraw</label>
+                <select name="account_type" class="form-select" required id="accountType">
+                    <option value="referral_bonus">Referral Bonus</option>
+                    <option value="main_balance">Main Balance</option>
+                </select>
+                <div class="balance-info" id="referralBalance">
+                    Available Balance: <span class="balance-amount">${{ referral_bonus|floatformat:2 }}</span>
+                </div>
+                <div class="balance-info" id="mainBalance" style="display: none;">
+                    Available Balance: <span class="balance-amount">${{ wallet_balance|floatformat:2 }}</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Amount</label>
+                <input type="number" name="amount" class="form-input" min="25" step="0.01" required>
+                <div class="amount-info">
+                    <span>Minimum amount to withdraw is $25</span>
+                </div>
+                <div class="amount-info">
+                    <span>5% charge on withdrawal</span>
+                </div>
+            </div>
+
+            <div class="form-group amount-to-receive">
+                <label class="form-label">Amount to receive</label>
+                <input type="text" id="amountToReceive" class="form-input" readonly>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Post Transaction</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('withdrawalForm');
+    const amountInput = form.querySelector('input[name="amount"]');
+    const amountToReceiveInput = document.getElementById('amountToReceive');
+    const accountTypeSelect = document.getElementById('accountType');
+    const referralBalanceDiv = document.getElementById('referralBalance');
+    const mainBalanceDiv = document.getElementById('mainBalance');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const referralBonus = {{ referral_bonus|floatformat:2 }};
+    const walletBalance = {{ wallet_balance|floatformat:2 }};
+
+    function calculateAmountToReceive(amount) {
+        const fee = amount * 0.05; // 5% fee
+        const amountToReceive = amount - fee;
+        return amountToReceive.toFixed(2);
+    }
+
+    function validateAmount() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const accountType = accountTypeSelect.value;
+        const availableBalance = accountType === 'referral_bonus' ? referralBonus : walletBalance;
+
+        if (amount < 25) {
+            submitBtn.disabled = true;
+            amountInput.classList.add('error');
+            return false;
+        }
+
+        if (amount > availableBalance) {
+            submitBtn.disabled = true;
+            amountInput.classList.add('error');
+            return false;
+        }
+
+        amountInput.classList.remove('error');
+        submitBtn.disabled = false;
+        return true;
+    }
+
+    accountTypeSelect.addEventListener('change', function() {
+        if (this.value === 'referral_bonus') {
+            referralBalanceDiv.style.display = 'flex';
+            mainBalanceDiv.style.display = 'none';
+        } else {
+            referralBalanceDiv.style.display = 'none';
+            mainBalanceDiv.style.display = 'flex';
+        }
+        validateAmount();
+    });
+
+    amountInput.addEventListener('input', function() {
+        const amount = parseFloat(this.value) || 0;
+        const amountToReceive = calculateAmountToReceive(amount);
+        amountToReceiveInput.value = `$${amountToReceive}`;
+        validateAmount();
+    });
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!validateAmount()) {
+            const accountType = accountTypeSelect.value;
+            const availableBalance = accountType === 'referral_bonus' ? referralBonus : walletBalance;
+            const amount = parseFloat(amountInput.value) || 0;
+
+            if (amount < 25) {
+                alert('Minimum withdrawal amount is $25');
+            } else if (amount > availableBalance) {
+                alert(`Insufficient ${accountType === 'referral_bonus' ? 'referral bonus' : 'wallet'} balance`);
+            }
+            return;
+        }
+
+        this.submit();
+    });
+});
+</script>
+{% endblock %} 

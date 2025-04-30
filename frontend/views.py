@@ -2,13 +2,16 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
-from users.models import User
-from subscriptions.models import Subscription, Plan
-from transactions.models import Transaction
+from users.models import User, Notification
+from subscriptions.models import Subscription, Plan, Referral, Wallet
+from transactions.models import Transaction, Withdrawal
 from django.http import JsonResponse
 from .models import Payment
 from decimal import Decimal
 import json
+import uuid
+from django.core.paginator import Paginator
+from django.utils import timezone
 
 def home(request):
     """Home page view."""
@@ -24,7 +27,7 @@ def register(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
-        referral_code = request.POST.get('referral_code')
+        referral_code = request.POST.get('referral_code') or request.GET.get('ref')
         
         if password != confirm_password:
             messages.error(request, 'Passwords do not match.')
@@ -38,17 +41,32 @@ def register(request):
             messages.error(request, 'Email already exists.')
             return render(request, 'registration/register.html')
             
+        # Create the user
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
         
+        # Handle referral
         if referral_code:
-            # Handle referral code logic here
-            pass
+            try:
+                referrer = User.objects.get(referral_code=referral_code)
+                user.referred_by = referrer
+                user.save()
+                
+                # Create referral record
+                Referral.objects.create(
+                    referrer=referrer,
+                    referred_user=user,
+                    bonus_amount=0  # Will be updated when user subscribes to a plan
+                )
+                
+                messages.success(request, f'Successfully registered with referral from {referrer.username}!')
+            except User.DoesNotExist:
+                messages.warning(request, 'Invalid referral code.')
             
-        # Authenticate the user with the correct backend
+        # Authenticate the user
         user = authenticate(
             request,
             username=username,
@@ -64,15 +82,28 @@ def register(request):
             messages.error(request, 'Authentication failed.')
             return render(request, 'registration/register.html')
         
-    return render(request, 'registration/register.html')
+    # For GET requests, check for referral code in query params
+    referral_code = request.GET.get('ref')
+    try:
+        if referral_code:
+            referrer = User.objects.get(referral_code=referral_code)
+            messages.info(request, f'Registering with referral from {referrer.username}')
+    except User.DoesNotExist:
+        messages.warning(request, 'Invalid referral code.')
+        
+    return render(request, 'registration/register.html', {'referral_code': referral_code})
 
 @login_required
 def dashboard(request):
     """User dashboard view."""
+    # Get user's active subscription if any
+    user_plan = Subscription.objects.filter(user=request.user, status='active').first()
+    
     context = {
-        'balance': request.user.balance,
+        'user_balance': request.user.balance,
         'recent_subscriptions': Subscription.objects.filter(user=request.user).order_by('-joined_at')[:5],
         'available_plans': Plan.objects.all(),
+        'user_plan': user_plan,
         'unread_notifications_count': request.user.notifications.filter(read=False).count()
     }
     return render(request, 'dashboard/dashboard.html', context)
@@ -141,25 +172,65 @@ def fund_account(request):
 @login_required
 def plans(request):
     """Available plans view."""
+    # Get user's active subscription if any
+    user_plan = Subscription.objects.filter(user=request.user, status='active').first()
+    
     context = {
-        'plans': Plan.objects.all()
+        'plans': Plan.objects.all(),
+        'user_plan': user_plan
     }
     return render(request, 'dashboard/plans.html', context)
 
+from django.core.paginator import Paginator
+
 @login_required
 def subscriptions(request):
-    """User subscriptions view."""
+    """User subscriptions view with pagination."""
+    subscription_list = Subscription.objects.filter(user=request.user).order_by('-joined_at')
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(subscription_list, 10)  # Show 10 subscriptions per page
+    page_obj = paginator.get_page(page_number)
     context = {
-        'subscriptions': Subscription.objects.filter(user=request.user).order_by('-created_at')
+        'subscriptions': page_obj.object_list,
+        'page_obj': page_obj,
+        'paginator': paginator,
     }
     return render(request, 'dashboard/subscriptions.html', context)
 
+
 @login_required
 def referrals(request):
-    """User referrals view."""
+    """User referrals view with pagination."""
+    # Get or generate referral code
+    if not request.user.referral_code:
+        request.user.referral_code = str(uuid.uuid4())[:8].upper()
+        request.user.save()
+    
+    # Generate referral URL
+    referral_url = request.build_absolute_uri(
+        f'/register/?ref={request.user.referral_code}'
+    )
+    
+    # Get referrals with sorting
+    referral_list = Referral.objects.filter(referrer=request.user)
+    
+    # Handle sorting
+    sort_param = request.GET.get('sort', '-date')  # Default to newest first
+    if sort_param == 'date':
+        referral_list = referral_list.order_by('created_at')
+    else:  # '-date' or any other value
+        referral_list = referral_list.order_by('-created_at')
+    
+    # Handle pagination
+    paginator = Paginator(referral_list, 10)  # Show 10 referrals per page
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'referral_code': request.user.referral_code,
-        'referrals': request.user.referrals.all()
+        'referral_url': referral_url,
+        'referrals': page_obj.object_list,
+        'page_obj': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
     }
     return render(request, 'dashboard/referrals.html', context)
 
@@ -177,11 +248,70 @@ def notifications(request):
 @login_required
 def withdrawal(request):
     """Withdrawal view."""
+    # Get user's wallet and referral bonus balances
+    try:
+        wallet = request.user.wallet
+        wallet_balance = wallet.balance if wallet else Decimal('0.00')
+    except:
+        wallet_balance = Decimal('0.00')
+
+    try:
+        referral_bonus = request.user.referral_bonus_wallet
+    except:
+        referral_bonus = Decimal('0.00')
+
+    context = {
+        'wallet_balance': wallet_balance,
+        'referral_bonus': referral_bonus,
+    }
+
     if request.method == 'POST':
-        amount = request.POST.get('amount')
-        # Handle withdrawal processing here
-        messages.success(request, f'Successfully initiated withdrawal of ${amount}')
-        return redirect('frontend:dashboard')
+        amount = Decimal(request.POST.get('amount', '0'))
+        account_type = request.POST.get('account_type')
+        wallet_address = request.POST.get('wallet_address')
+
+        if amount < 25:
+            messages.error(request, 'Minimum withdrawal amount is $25')
+            return render(request, 'dashboard/withdrawal.html', context)
+
+        # Validate balance based on account type
+        if account_type == 'referral_bonus' and amount > referral_bonus:
+            messages.error(request, 'Insufficient referral bonus balance')
+            return render(request, 'dashboard/withdrawal.html', context)
+        elif account_type == 'main_balance' and amount > wallet_balance:
+            messages.error(request, 'Insufficient wallet balance')
+            return render(request, 'dashboard/withdrawal.html', context)
+
+        try:
+            # Create withdrawal request
+            withdrawal = Withdrawal.objects.create(
+                user=request.user,
+                amount=amount,
+                withdrawal_type='CRYPTO',
+                wallet_address=wallet_address,
+                status='PENDING'
+            )
+
+            # Create transaction record
+            transaction = Transaction.objects.create(
+                user=request.user,
+                transaction_type='WITHDRAWAL',
+                amount=amount,
+                status='PENDING',
+                transaction_id=f"WD-{timezone.now().timestamp()}",
+                description=f"Withdrawal request for ${amount}"
+            )
+
+            # Link transaction to withdrawal
+            withdrawal.transaction = transaction
+            withdrawal.save()
+
+            messages.success(request, f'Successfully initiated withdrawal of ${amount}')
+            return redirect('frontend:dashboard')
+        except Exception as e:
+            messages.error(request, f'Error processing withdrawal: {str(e)}')
+            return render(request, 'dashboard/withdrawal.html', context)
+
     return render(request, 'dashboard/withdrawal.html', context)
 
 @login_required
@@ -324,3 +454,78 @@ def submit_payment(request):
             'status': 'error',
             'message': 'An unexpected error occurred. Please try again.'
         }, status=500)
+
+@login_required
+def subscribe_plan(request, plan_id):
+    """Handle plan subscription."""
+    try:
+        plan = Plan.objects.get(id=plan_id)
+        
+        # Check if user already has an active subscription
+        if Subscription.objects.filter(user=request.user, status='active').exists():
+            messages.error(request, 'You already have an active subscription.')
+            return redirect('frontend:dashboard')
+            
+        # Check if user has sufficient balance
+        if request.user.balance < plan.contribution_amount:
+            messages.error(request, f'Insufficient balance. Please fund your account with at least ${plan.contribution_amount}.')
+            return redirect('frontend:fund_account')
+            
+        # Create subscription
+        subscription = Subscription.objects.create(
+            user=request.user,
+            plan=plan,
+            status='active'
+        )
+        
+        # Deduct the plan price from user's balance
+        request.user.balance -= plan.contribution_amount
+        request.user.save()
+        
+        # Create transaction record
+        Transaction.objects.create(
+            user=request.user,
+            amount=-plan.contribution_amount,
+            transaction_type='subscription',
+            description=f'Subscription to {plan.name} plan'
+        )
+        
+        # Handle referral bonus if user was referred
+        if request.user.referred_by:
+            bonus_amount = plan.contribution_amount * Decimal('0.05')  # 5% referral bonus
+            referral = Referral.objects.get(
+                referrer=request.user.referred_by,
+                referred_user=request.user
+            )
+            referral.bonus_amount = bonus_amount
+            referral.save()
+            
+            # Add bonus to referrer's referral bonus wallet
+            request.user.referred_by.referral_bonus_wallet += bonus_amount
+            request.user.referred_by.save()
+            
+            # Create transaction record for referral bonus
+            Transaction.objects.create(
+                user=request.user.referred_by,
+                amount=bonus_amount,
+                transaction_type='referral_bonus',
+                description=f'Referral bonus from {request.user.username}'
+            )
+            
+            # Create notification for referrer
+            Notification.objects.create(
+                user=request.user.referred_by,
+                title='Referral Bonus Received',
+                message=f'You received a ${bonus_amount} referral bonus from {request.user.username}',
+                notification_type='success'
+            )
+        
+        messages.success(request, f'Successfully subscribed to {plan.name} plan!')
+        return redirect('frontend:dashboard')
+        
+    except Plan.DoesNotExist:
+        messages.error(request, 'Invalid plan selected.')
+        return redirect('frontend:dashboard')
+    except Exception as e:
+        messages.error(request, 'An error occurred while processing your subscription.')
+        return redirect('frontend:dashboard')

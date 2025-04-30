@@ -75,7 +75,7 @@
                 <div class="plan-item">
                     <div class="plan-info">
                         <div class="plan-name">{{ plan.name }}</div>
-                        <div class="plan-price">${{ plan.price|floatformat:2 }}/person</div>
+                        <div class="plan-price">${{ plan.contribution_amount|floatformat:2 }}/person</div>
                     </div>
                     {% if user_plan %}
                         <button class="subscribe-btn disabled" disabled>Subscribe</button>

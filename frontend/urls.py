@@ -22,6 +22,7 @@ urlpatterns = [
     path('dashboard/submit-payment/', views.submit_payment, name='submit_payment'),
     path('dashboard/plans/', views.plans, name='plans'),
     path('dashboard/subscriptions/', views.subscriptions, name='subscriptions'),
+    path('dashboard/subscribe/<int:plan_id>/', views.subscribe_plan, name='subscribe_plan'),
     path('dashboard/referrals/', views.referrals, name='referrals'),
     path('dashboard/notifications/', views.notifications, name='notifications'),
     path('dashboard/withdrawal/', views.withdrawal, name='withdrawal'),

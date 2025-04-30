@@ -1,0 +1,154 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Subscriptions | AgapeThrift{% endblock %}
+
+{% block content %}
+<div class="subscriptions-page">
+    <h2 class="subscriptions-title">Subscriptions</h2>
+    <div class="subscriptions-table-container">
+        <table class="subscriptions-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Amount</th>
+                    <th>Plan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if subscriptions %}
+                {% for sub in subscriptions %}
+                <tr>
+                    <td>{{ sub.user.get_full_name|default:sub.user.username }}</td>
+                    <td>{{ sub.joined_at|date:"d M, Y" }}</td>
+                    <td>{{ sub.joined_at|time:"h:i a" }}</td>
+                    <td>${{ sub.total_received|default:sub.plan.amount }}</td>
+                    <td>{{ sub.plan.name }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5" class="no-subscriptions">No subscriptions found.</td>
+                </tr>
+                {% endif %}
+
+            </tbody>
+        </table>
+    </div>
+    <div class="subscriptions-pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn">&lt;</a>
+        {% else %}
+            <span class="pagination-btn" disabled tabindex="-1" aria-disabled="true">&lt;</span>
+        {% endif %}
+        <span class="pagination-info">Page {{ page_obj.number }}/{{ paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="pagination-btn">&gt;</a>
+        {% else %}
+            <span class="pagination-btn" disabled tabindex="-1" aria-disabled="true">&gt;</span>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .subscriptions-page {
+        max-width: 1100px;
+        margin: 48px auto 0 auto;
+        padding: 0 24px 48px 24px;
+        background: #f5f5f5;
+        min-height: 80vh;
+    }
+
+    .subscriptions-title {
+        font-size: 1.35rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        margin-left: 0.5rem;
+        color: #222;
+    }
+
+    .subscriptions-table-container {
+        background: #e9ecef;
+        border-radius: 18px 18px 0 0;
+        margin: 0 auto;
+        max-width: 100%;
+        box-shadow: 0 2px 8px rgba(60, 60, 60, 0.07);
+        padding: 0 0 2rem 0;
+    }
+
+    .subscriptions-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fff;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(60, 60, 60, 0.07);
+    }
+
+    .subscriptions-table thead tr {
+        background: #a7d7c3;
+        color: #000;
+    }
+
+    .subscriptions-table th,
+    .subscriptions-table td {
+        text-align: left;
+        padding: 1rem 1.2rem;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .subscriptions-table th {
+        font-weight: 700;
+        border-bottom: 2px solid #d7e1e9;
+    }
+
+    .subscriptions-table tbody tr {
+        background: #fff;
+        border-bottom: 1px solid #e7e7e7;
+    }
+
+    .subscriptions-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .subscriptions-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.2rem;
+        margin: 2rem 0 0 0;
+    }
+
+    .pagination-btn {
+        background: #e9ecef;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #222;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .pagination-info {
+        font-size: 1rem;
+        color: #222;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
