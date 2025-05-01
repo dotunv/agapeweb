@@ -295,24 +295,49 @@ p {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .hero-content {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        text-align: center;
     }
-    
-    .navbar-menu {
-        display: none;
+    .hero-text {
+        order: 2; /* Text below image */
+        margin-top: 30px;
     }
-    
-    .mobile-menu-toggle {
-        display: block;
+    .hero-image {
+        order: 1; /* Image on top */
+        margin-bottom: 30px; /* Add space below image */
     }
-    
-    .dashboard-grid {
-        grid-template-columns: 1fr;
+    .hero-image img {
+        max-width: 350px; /* Slightly smaller image */
+    }
+    .hero-text .subheading {
+       margin-left: auto;
+       margin-right: auto; /* Center subheading */
+    }
+    .features-grid {
+        grid-template-columns: 1fr; /* Stack feature cards */
     }
 }
 
+@media (max-width: 768px) {
+     .hero-text h1 {
+        font-size: 2.5rem; /* Smaller heading on mobile */
+    }
+    .hero-image img {
+        max-width: 300px;
+    }
+     .about-content h2, .join-content h2 {
+        font-size: 2rem;
+    }
+     .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-nav a {
+        margin: 5px 10px; /* Adjust spacing for stacked links */
+    }
+}
 /* Utility Classes */
 .text-center {
     text-align: center;

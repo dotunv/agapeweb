@@ -22,7 +22,228 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-dark: #0a1a0f; /* Very dark green/black background */
+    --bg-card: #102a1a; /* Slightly lighter card background */
+    --primary-green: #2ecc71; /* Bright green accent */
+    --text-light: #ffffff; /* White text */
+    --text-medium: #bdc3c7; /* Lighter grey text */
+    --border-color: #1a4a2a; /* Subtle green border */
+    --border-radius: 8px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Example font */
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 80px 0;
+    background-color: var(--bg-dark); /* Ensure consistent dark background */
+    overflow: hidden; /* Prevent image overflow issues if needed */
+}
+
+.hero-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.hero-text h1 {
+    font-size: 3.2rem; /* Adjust size as needed */
+    font-weight: bold;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.hero-text h1 .highlight {
+    color: var(--primary-green);
+}
+
+.hero-text .subheading {
+    font-size: 1.1rem;
+    color: var(--text-medium);
+    margin-bottom: 30px;
+    max-width: 450px; /* Limit width of subheading */
+}
+
+.hero-buttons .btn {
+    text-decoration: none;
+    color: var(--text-light);
+    padding: 12px 25px;
+    border-radius: var(--border-radius);
+    font-weight: bold;
+    margin-right: 15px;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    display: inline-block; /* Ensure proper spacing and sizing */
+}
+
+.hero-buttons .btn-primary {
+    background-color: var(--primary-green);
+    border: 1px solid var(--primary-green);
+}
+.hero-buttons .btn-primary:hover {
+    background-color: #27ae60; /* Darker green on hover */
+    border-color: #27ae60;
+}
+
+.hero-buttons .btn-secondary {
+    background-color: transparent;
+    border: 1px solid var(--primary-green);
+    color: var(--primary-green);
+}
+
+.hero-buttons .btn-secondary:hover {
+    background-color: rgba(46, 204, 113, 0.1); /* Slight green tint on hover */
+}
+
+.hero-image img {
+    max-width: 450px; /* Adjust size as needed */
+    height: auto;
+    /* Add specific positioning if needed, e.g., transform: translateX(20px); */
+}
+
+
+/* Features Section */
+.features-section {
+    padding: 80px 0;
+    background-color: #08140b; /* Slightly different dark shade if needed */
+}
+
+.features-label {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.features-label span {
+    display: inline-block;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    color: var(--text-medium);
+    padding: 8px 20px;
+    border-radius: 20px; /* Pill shape */
+    font-size: 0.9rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    gap: 30px;
+}
+
+.feature-card {
+    background-color: var(--bg-card);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.feature-card h2 {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--text-light);
+    margin-bottom: 10px;
+}
+
+.feature-card .feature-icon {
+    font-size: 3rem; /* Adjust icon size */
+    color: var(--text-light); /* Icon color */
+    margin-bottom: 15px;
+}
+
+.feature-card h4 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    /* If the icon card title needs more space */
+    margin-top: 10px;
+}
+
+.feature-card p {
+    font-size: 0.95rem;
+    color: var(--text-medium);
+}
+
+
+/* About/Join Section */
+.about-section {
+    padding: 80px 0;
+    text-align: center;
+}
+
+.about-content, .join-content {
+    max-width: 700px; /* Limit width for readability */
+    margin: 0 auto;
+}
+
+.about-content h2, .join-content h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: var(--text-light);
+}
+
+.about-content p, .join-content p {
+    font-size: 1.1rem;
+    color: var(--text-medium);
+    margin-bottom: 50px; /* Space between About and Join */
+}
+
+.join-content h2 {
+    font-size: 2rem; /* Slightly smaller heading for Join */
+}
+
+
+/* Footer Section */
+.footer-section {
+    padding: 30px 0;
+    border-top: 1px solid var(--border-color); /* Subtle top border */
+    background-color: var(--bg-dark); /* Match overall background */
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 15px; /* Gap between items if they wrap */
+}
+
+.footer-content .copyright {
+    font-size: 0.9rem;
+    color: var(--text-medium);
+}
+
+.footer-nav a {
+    color: var(--text-medium);
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.footer-nav a:hover {
+    color: var(--text-light);
+}
+        /* :root {
             --primary-color: #00A651;
             --primary-dark: #008541;
             --secondary-color: #FF0000;
@@ -41,7 +262,7 @@
             --border-radius-lg: 16px;
             --transition-fast: 0.2s ease;
             --transition-normal: 0.3s ease;
-        }
+        } */
 
         * {
             margin: 0;
@@ -55,9 +276,9 @@
         }
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--light-text);
-            line-height: 1.6;
+            /* background-color: var(--dark-bg);
+            color: var(--light-text); */
+            /* line-height: 1.6; */
         }
 
         .skip-to-content {
@@ -76,7 +297,7 @@
             top: 0;
         }
 
-        .btn-primary {
+        /* .btn-primary {
             background: var(--primary-color);
             border: none;
             color: #fff;
@@ -113,7 +334,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 var(--spacing-md);
-        }
+        } */
 
         /* Navbar Styles */
         .navbar {
@@ -324,34 +545,14 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="main-footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>AgapeThrift</h3>
-                <p>Revolutionizing collective contributions and empowering financial freedom.</p>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="{% url 'frontend:features' %}">Features</a></li>
-                    <li><a href="{% url 'frontend:about' %}">About Us</a></li>
-                    <li><a href="{% url 'frontend:contact' %}">Contact</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h3>Legal</h3>
-                <ul>
-                    <li><a href="{% url 'frontend:privacy' %}">Privacy Policy</a></li>
-                    <li><a href="{% url 'frontend:terms' %}">Terms & Conditions</a></li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p>&copy; {% now "Y" %} AgapeThrift. All rights reserved.</p>
+
+    <footer class="footer-section">
+        <div class="container footer-content">
+            <p class="copyright">&copy; Copyright AgapeThrift {% now "Y" %}. All rights reserved</p>
+            <nav class="footer-nav">
+                <a href="{% url 'frontend:privacy' %}">Privacy Policy</a>
+                <a href="{% url 'frontend:terms' %}">Terms and Conditions</a>
+            </nav>
         </div>
     </footer>
 

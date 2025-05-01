@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgapeThrift - Smart Investments</title>
+    <!-- Optional: Add a link to Font Awesome if you want icons like the suitcase -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <header class="hero-section">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <h1>
+                    Unlock your Financial<br>
+                    Freedom with <span class="highlight">Smart</span><br>
+                    <span class="highlight">Investments</span>
+                </h1>
+                <p class="subheading">
+                    Revolutionizing collective contributions and empowering financial freedom.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn btn-primary">Get Started</a>
+                    <a href="#" class="btn btn-secondary">Login</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="{% static 'images/hero.png' %}" alt="App Interface on Phones">
+                 <!-- Replace placeholder-phones.png with the actual path to your phone image -->
+                 <!-- You might need to create this image or find a similar one -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="features-label">
+                <span>Features</span>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h2>1,000</h2>
+                    <h4>Active Subscribers</h4>
+                    <p>With over 1000 active subscribers and continually growing</p>
+                </div>
+                <div class="feature-card">
+                    <h2>5,000</h2>
+                    <h4>Transactions per day</h4>
+                    <p>Incredibly fast transaction speeds create a seamless user experience</p>
+                </div>
+                <div class="feature-card">
+                     <!-- Using Font Awesome icon as placeholder -->
+                    <i class="fas fa-briefcase-dollar feature-icon"></i>
+                    <h4>The investment platform you can trust</h4>
+                     <!-- The text below the icon seems integrated with the title -->
+                </div>
+                <div class="feature-card">
+                    <h2>100%</h2>
+                    <h4>Trustworthy and Reliable</h4>
+                    <p>100% trustworthy and reliable for returns</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About/Join Section -->
+    <section class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <h2>About Us</h2>
+                <p>AgapeThrift brings together both members and non-members, enabling them to contribute funds according to their selected packages.</p>
+            </div>
+            <div class="join-content">
+                <h2>Join our multitudes of users today</h2>
+                <p>Join a global network of freelancers who have achieved success through our courses. Collaborate, seek advice, and continue growing alongside peers who understand your journey.</p>
+                 <!-- Note: The description text here seems slightly generic and might need adjustment to match the product's focus -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    
+
+</body>
+</html>
+{% endblock %}
+<style>
+    /* Basic Reset & Global Styles */
+
+
+/* Responsive Adjustments (Example) */
+
+</style>
