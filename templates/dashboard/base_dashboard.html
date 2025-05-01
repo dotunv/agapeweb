@@ -344,7 +344,9 @@
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="{% static 'images/dash-logo.svg' %}" alt="Agape Thrift Logo" class="sidebar-logo" />
+            <a href="{% url 'frontend:home' %}">
+                <img src="{% static 'images/dash-logo.svg' %}" alt="Agape Thrift Logo" class="sidebar-logo" />
+            </a>
         </div>
         <nav class="sidebar-nav">
             <ul>
@@ -409,7 +411,7 @@
     <!-- Main Content -->
     <div class="main">
         <header class="topbar">
-            <div class="page-title">Dashboard</div>
+            <div class="page-title">{% block page_title %}Dashboard{% endblock %}</div>
             <nav class="nav-content">
                 <ul>
                     <li>
