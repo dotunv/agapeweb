@@ -1,62 +1,150 @@
 {% extends 'admin/base_admin.html' %}
+{% load query_transform %}
+{% load custom_filters %}
 
 {% block title %}Manage Users - AgapeThrift{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Manage Users</h1>
-</div>
+<div class="users-dashboard">
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stats-label">Total Number of Users</div>
+        <div class="user-count">{{ total_users }}</div>
+    </div>
 
-<div class="card">
+    <!-- Debug info - will remove after confirming -->
+    {% if debug %}
+    <div style="display:none">
+        Available context:
+        total_users: {{ total_users|default:"Not set" }}
+        paginator count: {{ page_obj.paginator.count|default:"Not set" }}
+    </div>
+    {% endif %}
+
+    <!-- Filters Section -->
+    <form method="get" class="filters-section" id="filterForm">
+        <div class="filters-group">
+            <div class="filter-dropdown">
+                <select name="date" class="form-select" onchange="this.form.submit()">
+                    <option value="">Date</option>
+                    <option value="jan" {% if current_filters.date == 'jan' %}selected{% endif %}>January</option>
+                    <option value="feb" {% if current_filters.date == 'feb' %}selected{% endif %}>February</option>
+                    <option value="mar" {% if current_filters.date == 'mar' %}selected{% endif %}>March</option>
+                    <option value="apr" {% if current_filters.date == 'apr' %}selected{% endif %}>April</option>
+                    <option value="may" {% if current_filters.date == 'may' %}selected{% endif %}>May</option>
+                    <option value="jun" {% if current_filters.date == 'jun' %}selected{% endif %}>June</option>
+                    <option value="jul" {% if current_filters.date == 'jul' %}selected{% endif %}>July</option>
+                    <option value="aug" {% if current_filters.date == 'aug' %}selected{% endif %}>August</option>
+                    <option value="sep" {% if current_filters.date == 'sep' %}selected{% endif %}>September</option>
+                    <option value="oct" {% if current_filters.date == 'oct' %}selected{% endif %}>October</option>
+                    <option value="nov" {% if current_filters.date == 'nov' %}selected{% endif %}>November</option>
+                    <option value="dec" {% if current_filters.date == 'dec' %}selected{% endif %}>December</option>
+                </select>
+            </div>
+            <div class="filter-dropdown">
+                <select name="plan" class="form-select" onchange="this.form.submit()">
+                    <option value="">Plan</option>
+                    <option value="PRE_STARTER" {% if current_filters.plan == 'PRE_STARTER' %}selected{% endif %}>Pre-Starter Plan ($10)</option>
+                    <option value="STARTER" {% if current_filters.plan == 'STARTER' %}selected{% endif %}>Starter Plan ($25)</option>
+                    <option value="BASIC_1" {% if current_filters.plan == 'BASIC_1' %}selected{% endif %}>Basic 1 ($100)</option>
+                    <option value="BASIC_2" {% if current_filters.plan == 'BASIC_2' %}selected{% endif %}>Basic 2 ($500)</option>
+                    <option value="STANDARD" {% if current_filters.plan == 'STANDARD' %}selected{% endif %}>Standard ($1,000)</option>
+                    <option value="ULTIMATE_1" {% if current_filters.plan == 'ULTIMATE_1' %}selected{% endif %}>Ultimate 1 ($2,500)</option>
+                    <option value="ULTIMATE_2" {% if current_filters.plan == 'ULTIMATE_2' %}selected{% endif %}>Ultimate 2 ($5,000)</option>
+                </select>
+            </div>
+            <div class="filter-dropdown">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">Status</option>
+                    <option value="active" {% if current_filters.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if current_filters.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+        </div>
+        <div class="search-group">
+            <div class="search-input">
+                <input type="text" name="search" placeholder="Search" class="form-control" value="{{ current_filters.search }}">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <button type="submit" class="btn btn-view">View</button>
+        </div>
+        <input type="hidden" name="sort" value="{{ current_filters.sort }}" id="sortField">
+    </form>
+
+    <!-- Users Table -->
     <div class="table-container">
         <table class="table">
             <thead>
                 <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Date Joined</th>
-                    <th>Balance</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('username')" class="sort-header">
+                            Username 
+                            <i class="fas fa-sort{% if current_filters.sort == 'username' %}-up{% elif current_filters.sort == '-username' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('date_joined')" class="sort-header">
+                            Date 
+                            <i class="fas fa-sort{% if current_filters.sort == 'date_joined' %}-up{% elif current_filters.sort == '-date_joined' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
+                    <th>Time</th>
+                    <th>Pos.</th>
+                    <th>Bal.</th>
+                    <th>Amount</th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('plan')" class="sort-header">
+                            Plan 
+                            <i class="fas fa-sort{% if current_filters.sort == 'plan' %}-up{% elif current_filters.sort == '-plan' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
+                    <th>Auto Sub</th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('is_active')" class="sort-header">
+                            Status 
+                            <i class="fas fa-sort{% if current_filters.sort == 'is_active' %}-up{% elif current_filters.sort == '-is_active' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 {% for user in page_obj %}
                 <tr>
                     <td>{{ user.username }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                    <td>{{ user.date_joined|date:"d M, Y" }}</td>
+                    <td>{{ user.date_joined|time:"H:i" }}</td>
+                    <td>{{ forloop.counter }}</td>
                     <td>${{ user.balance|floatformat:2 }}</td>
+                    <td>${{ user.subscription_amount|default:"100" }}</td>
+                    <td>{% for sub in user.subscriptions.all %}{% if sub.status == 'ACTIVE' %}{{ sub.plan.name }}{% endif %}{% empty %}Basic 1{% endfor %}</td>
+                    <td>{{ user.auto_sub|default:"0" }}</td>
                     <td>
-                        <span class="status-badge {% if user.is_active %}status-approved{% else %}status-rejected{% endif %}">
+                        <span class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
                             {% if user.is_active %}Active{% else %}Inactive{% endif %}
                         </span>
-                    </td>
-                    <td>
-                        <a href="{% url 'frontend:user_balance' user.id %}" class="btn btn-primary btn-sm">Manage Balance</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    
+
     {% if page_obj.has_other_pages %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+            <a href="?{% query_transform request.GET page=page_obj.previous_page_number %}">&laquo; Previous</a>
         {% endif %}
         
         {% for num in page_obj.paginator.page_range %}
             {% if page_obj.number == num %}
                 <span class="current">{{ num }}</span>
             {% else %}
-                <a href="?page={{ num }}">{{ num }}</a>
+                <a href="?{% query_transform request.GET page=num %}">{{ num }}</a>
             {% endif %}
         {% endfor %}
         
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+            <a href="?{% query_transform request.GET page=page_obj.next_page_number %}">Next &raquo;</a>
         {% endif %}
     </div>
     {% endif %}
@@ -65,9 +153,241 @@
 
 {% block extra_css %}
 <style>
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
+    .users-dashboard {
+        padding: 24px;
+        background-color: #f4f4f5;
+        min-height: 100vh;
+    }
+
+    .stats-section {
+        margin-bottom: 24px;
+    }
+
+    .stats-label {
+        font-size: 14px;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .user-count {
+        font-size: 28px;
+        font-weight: 600;
+        color: #111827;
+        background-color: white;
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 4px;
+    }
+
+    .filters-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 16px;
+    }
+
+    .filters-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .filter-dropdown select {
+        padding: 8px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        background: white;
+        min-width: 100px;
+        color: #374151;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .search-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .search-input {
+        position: relative;
+    }
+
+    .search-input input {
+        padding: 8px 16px;
+        padding-right: 40px;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        width: 240px;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 14px;
+    }
+
+    .btn-view {
+        background-color: #82c091;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-view:hover {
+        background-color: #6baf7a;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table thead {
+        background-color: #e8f5ea;
+    }
+
+    .table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 500;
+        color: #374151;
+        font-size: 14px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .table td {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #374151;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background-color: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-inactive {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .status-active::before {
+        content: "•";
+        margin-right: 4px;
+        font-size: 16px;
+    }
+
+    .fa-sort {
+        font-size: 12px;
+        margin-left: 4px;
+        color: #9ca3af;
+    }
+
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .pagination a, .pagination span {
+        padding: 8px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        color: #374151;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .pagination span.current {
+        background-color: #82c091;
+        color: white;
+        border-color: #82c091;
+    }
+
+    .pagination a:hover {
+        background-color: #f9fafb;
+    }
+
+    .sort-header {
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .sort-header:hover {
+        color: #4a5568;
+    }
+
+    .fa-sort-up, .fa-sort-down {
+        color: #82c091;
     }
 </style>
-{% endblock %} 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateSort(field) {
+        const currentSort = document.getElementById('sortField').value;
+        let newSort = field;
+        
+        // Toggle sort direction
+        if (currentSort === field) {
+            newSort = '-' + field;
+        } else if (currentSort === '-' + field) {
+            newSort = field;
+        }
+        
+        // Update hidden sort field and submit form
+        document.getElementById('sortField').value = newSort;
+        document.getElementById('filterForm').submit();
+    }
+
+    // Preserve search params in pagination links
+    function updateQueryStringParameter(key, value) {
+        const uri = window.location.href;
+        const re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+        const separator = uri.indexOf('?') !== -1 ? "&" : "?";
+        
+        if (uri.match(re)) {
+            return uri.replace(re, '$1' + key + "=" + value + '$2');
+        } else {
+            return uri + separator + key + "=" + value;
+        }
+    }
+</script>
+{% endblock %}

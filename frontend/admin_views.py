@@ -44,14 +44,8 @@ def admin_login(request):
 @admin_required
 def admin_dashboard(request):
     """Admin dashboard view showing overview of system."""
-    # Get total users count
-    try:
-        with open('user_count.txt', 'r') as f:
-            total_users = int(f.read().strip())
-    except (FileNotFoundError, ValueError):
-        total_users = User.objects.count()
-        with open('user_count.txt', 'w') as f:
-            f.write(str(total_users))
+    # Get total users count directly from database
+    total_users = User.objects.count()
     
     # Get deposits and withdrawals statistics
     total_deposits = Transaction.objects.filter(transaction_type='deposit').count()
@@ -131,13 +125,78 @@ def admin_dashboard(request):
 @admin_required
 def manage_users(request):
     """View for managing users."""
-    users = User.objects.all().order_by('-date_joined')
+    users = User.objects.prefetch_related(
+        'subscriptions',
+        'subscriptions__plan'
+    ).all()
+    
+    # Get filter parameters
+    date_filter = request.GET.get('date')
+    plan_filter = request.GET.get('plan')
+    status_filter = request.GET.get('status')
+    search_query = request.GET.get('search')
+    
+    # Apply filters
+    if date_filter:
+        month_map = {
+            'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+            'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
+        }
+        month_number = month_map.get(date_filter.lower())
+        if month_number:
+            users = users.filter(date_joined__month=month_number)
+    
+    if plan_filter:
+        # Filter users by their active subscription plan type
+        users = users.filter(
+            subscriptions__plan__plan_type__iexact=plan_filter,
+            subscriptions__status='ACTIVE'
+        ).distinct()
+    
+    if status_filter:
+        is_active = status_filter.lower() == 'active'
+        users = users.filter(is_active=is_active)
+    
+    # Apply search
+    if search_query:
+        users = users.filter(username__icontains=search_query)
+    
+    # Get sort parameter
+    sort_by = request.GET.get('sort', '-date_joined')  # Default sort by date desc
+    sort_field = sort_by.lstrip('-')
+    
+    # Validate sort field
+    valid_sort_fields = ['username', 'date_joined', 'is_active']
+    if sort_field not in valid_sort_fields:
+        sort_by = '-date_joined'
+    
+    # Apply sorting
+    users = users.order_by(sort_by)
+    
+    # Pagination
     paginator = Paginator(users, 10)  # Show 10 users per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Get current sort direction for template
+    current_sort = request.GET.get('sort', '')
+    sort_directions = {
+        'username': 'desc' if current_sort == 'username' else 'asc',
+        'date_joined': 'desc' if current_sort == 'date_joined' else 'asc',
+        'is_active': 'desc' if current_sort == 'is_active' else 'asc'
+    }
+    
     context = {
         'page_obj': page_obj,
+        'total_users': users.count(),
+        'current_filters': {
+            'date': date_filter,
+            'plan': plan_filter,
+            'status': status_filter,
+            'search': search_query,
+            'sort': current_sort
+        },
+        'sort_directions': sort_directions
     }
     return render(request, 'admin/manage_users.html', context)
 
