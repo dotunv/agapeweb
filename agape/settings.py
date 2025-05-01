@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'migraph',
     'plans',
+    'csp',
 ]
 
 MIDDLEWARE = [
@@ -86,6 +87,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django_ratelimit.middleware.RatelimitMiddleware',
     'core.middleware.SecurityHeadersMiddleware',
@@ -502,3 +504,38 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='your_gmail_address@gmail.com')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='your_gmail_password')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='your_gmail_address@gmail.com')
+
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ["'self'"],
+        'style-src': [
+            "'self'",
+            "'unsafe-inline'",
+            'fonts.googleapis.com',
+            'cdnjs.cloudflare.com'
+        ],
+        'style-src-elem': [
+            "'self'",
+            "'unsafe-inline'",
+            'fonts.googleapis.com',
+            'cdnjs.cloudflare.com'
+        ],
+        'font-src': [
+            "'self'",
+            'fonts.gstatic.com',
+            'cdnjs.cloudflare.com'
+        ],
+        'img-src': ["'self'", 'data:', 'https:'],
+        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        'connect-src': ["'self'"],
+    }
+}
+
+PERMISSIONS_POLICY = {
+    'browsing-topics': [],
+    'join-ad-interest-group': [],
+    'private-state-token-issuance': [],
+    'private-state-token-redemption': [],
+    'run-ad-auction': [],
+    'attribution-reporting': [],
+}
