@@ -23,44 +23,6 @@
 
     <!-- Filters Section -->
     <form method="get" class="filters-section" id="filterForm">
-        <div class="filters-group">
-            <div class="filter-dropdown">
-                <select name="date" class="form-select" onchange="this.form.submit()">
-                    <option value="">Date</option>
-                    <option value="jan" {% if current_filters.date == 'jan' %}selected{% endif %}>January</option>
-                    <option value="feb" {% if current_filters.date == 'feb' %}selected{% endif %}>February</option>
-                    <option value="mar" {% if current_filters.date == 'mar' %}selected{% endif %}>March</option>
-                    <option value="apr" {% if current_filters.date == 'apr' %}selected{% endif %}>April</option>
-                    <option value="may" {% if current_filters.date == 'may' %}selected{% endif %}>May</option>
-                    <option value="jun" {% if current_filters.date == 'jun' %}selected{% endif %}>June</option>
-                    <option value="jul" {% if current_filters.date == 'jul' %}selected{% endif %}>July</option>
-                    <option value="aug" {% if current_filters.date == 'aug' %}selected{% endif %}>August</option>
-                    <option value="sep" {% if current_filters.date == 'sep' %}selected{% endif %}>September</option>
-                    <option value="oct" {% if current_filters.date == 'oct' %}selected{% endif %}>October</option>
-                    <option value="nov" {% if current_filters.date == 'nov' %}selected{% endif %}>November</option>
-                    <option value="dec" {% if current_filters.date == 'dec' %}selected{% endif %}>December</option>
-                </select>
-            </div>
-            <div class="filter-dropdown">
-                <select name="plan" class="form-select" onchange="this.form.submit()">
-                    <option value="">Plan</option>
-                    <option value="PRE_STARTER" {% if current_filters.plan == 'PRE_STARTER' %}selected{% endif %}>Pre-Starter Plan ($10)</option>
-                    <option value="STARTER" {% if current_filters.plan == 'STARTER' %}selected{% endif %}>Starter Plan ($25)</option>
-                    <option value="BASIC_1" {% if current_filters.plan == 'BASIC_1' %}selected{% endif %}>Basic 1 ($100)</option>
-                    <option value="BASIC_2" {% if current_filters.plan == 'BASIC_2' %}selected{% endif %}>Basic 2 ($500)</option>
-                    <option value="STANDARD" {% if current_filters.plan == 'STANDARD' %}selected{% endif %}>Standard ($1,000)</option>
-                    <option value="ULTIMATE_1" {% if current_filters.plan == 'ULTIMATE_1' %}selected{% endif %}>Ultimate 1 ($2,500)</option>
-                    <option value="ULTIMATE_2" {% if current_filters.plan == 'ULTIMATE_2' %}selected{% endif %}>Ultimate 2 ($5,000)</option>
-                </select>
-            </div>
-            <div class="filter-dropdown">
-                <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">Status</option>
-                    <option value="active" {% if current_filters.status == 'active' %}selected{% endif %}>Active</option>
-                    <option value="inactive" {% if current_filters.status == 'inactive' %}selected{% endif %}>Inactive</option>
-                </select>
-            </div>
-        </div>
         <div class="search-group">
             <div class="search-input">
                 <input type="text" name="search" placeholder="Search" class="form-control" value="{{ current_filters.search }}">
@@ -181,26 +143,10 @@
 
     .filters-section {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
         margin-bottom: 16px;
         gap: 16px;
-    }
-
-    .filters-group {
-        display: flex;
-        gap: 8px;
-    }
-
-    .filter-dropdown select {
-        padding: 8px 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        background: white;
-        min-width: 100px;
-        color: #374151;
-        font-size: 14px;
-        cursor: pointer;
     }
 
     .search-group {

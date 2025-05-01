@@ -130,32 +130,8 @@ def manage_users(request):
         'subscriptions__plan'
     ).all()
     
-    # Get filter parameters
-    date_filter = request.GET.get('date')
-    plan_filter = request.GET.get('plan')
-    status_filter = request.GET.get('status')
+    # Get search parameter
     search_query = request.GET.get('search')
-    
-    # Apply filters
-    if date_filter:
-        month_map = {
-            'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-            'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
-        }
-        month_number = month_map.get(date_filter.lower())
-        if month_number:
-            users = users.filter(date_joined__month=month_number)
-    
-    if plan_filter:
-        # Filter users by their active subscription plan type
-        users = users.filter(
-            subscriptions__plan__plan_type__iexact=plan_filter,
-            subscriptions__status='ACTIVE'
-        ).distinct()
-    
-    if status_filter:
-        is_active = status_filter.lower() == 'active'
-        users = users.filter(is_active=is_active)
     
     # Apply search
     if search_query:
@@ -190,9 +166,6 @@ def manage_users(request):
         'page_obj': page_obj,
         'total_users': users.count(),
         'current_filters': {
-            'date': date_filter,
-            'plan': plan_filter,
-            'status': status_filter,
             'search': search_query,
             'sort': current_sort
         },
