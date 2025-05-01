@@ -12,14 +12,17 @@ distlib==0.3.9
 dj-database-url==2.3.0
 dj-rest-auth==7.0.1
 Django==5.2
+django-admin-rangefilter==0.13.2
 django-allauth==65.7.0
 django-cors-headers==4.7.0
+django-csp==4.0
 django-debug-toolbar==5.1.0
 django-environ==0.12.0
 django-extensions==3.2.3
 django-migrations-graph==0.1.1
 django-ratelimit==4.0.0
 django-redis==5.4.0
+django-rest-auth==0.9.5
 django-rest-knox==5.0.2
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
