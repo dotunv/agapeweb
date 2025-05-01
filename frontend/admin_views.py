@@ -12,6 +12,8 @@ from django.urls import reverse
 from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
+from django.http import JsonResponse
+from django.db.models import Q
 
 def admin_login(request):
     """Admin login view."""
@@ -264,4 +266,39 @@ def process_withdrawal(request, withdrawal_id):
     context = {
         'withdrawal': withdrawal,
     }
-    return render(request, 'admin/process_withdrawal.html', context) 
+    return render(request, 'admin/process_withdrawal.html', context)
+
+@admin_required
+def search_suggestions(request):
+    """API endpoint for search suggestions."""
+    query = request.GET.get('q', '').strip()
+    suggestions = []
+    
+    if len(query) >= 2:
+        # Get username suggestions
+        username_suggestions = User.objects.filter(
+            username__icontains=query
+        ).values_list('username', flat=True)[:5]
+        suggestions.extend(username_suggestions)
+        
+        # Get email suggestions (domain part masked)
+        email_suggestions = User.objects.filter(
+            email__icontains=query
+        ).values_list('email', flat=True)[:5]
+        masked_emails = [
+            f"{email.split('@')[0]}@..." for email in email_suggestions
+        ]
+        suggestions.extend(masked_emails)
+        
+        # Get plan name suggestions
+        plan_suggestions = User.objects.filter(
+            subscriptions__plan__name__icontains=query
+        ).values_list(
+            'subscriptions__plan__name', flat=True
+        ).distinct()[:5]
+        suggestions.extend(plan_suggestions)
+        
+        # Remove duplicates and limit to 5 suggestions
+        suggestions = list(dict.fromkeys(suggestions))[:5]
+    
+    return JsonResponse({'suggestions': suggestions}) 

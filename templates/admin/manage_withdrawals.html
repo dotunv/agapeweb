@@ -1,55 +1,118 @@
 {% extends 'admin/base_admin.html' %}
+{% load query_transform %}
 
 {% block title %}Manage Withdrawals - AgapeThrift{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Manage Withdrawals</h1>
-</div>
+<div class="withdrawals-dashboard">
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stats-label">Number of Withdrawals</div>
+        <div class="count-display">{{ page_obj.paginator.count }}</div>
+    </div>
 
-<div class="card">
+    <!-- Search Section -->
+    <div class="search-section">
+        <form method="get" id="searchForm" class="search-container">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                    type="text" 
+                    name="search" 
+                    id="searchInput"
+                    placeholder="Search by username or wallet address..." 
+                    class="form-control" 
+                    value="{{ current_filters.search }}"
+                    autocomplete="off"
+                >
+                {% if current_filters.search %}
+                    <button type="button" class="clear-search" id="clearSearch">
+                        <i class="fas fa-times"></i>
+                    </button>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn-search">
+                <span>Search</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <input type="hidden" name="sort" value="{{ current_filters.sort }}" id="sortField">
+        </form>
+        <div id="searchSuggestions" class="search-suggestions"></div>
+
+        {% if current_filters.search %}
+        <div class="search-results-info">
+            <span>Found {{ total_withdrawals }} result{{ total_withdrawals|pluralize }} for "{{ current_filters.search }}"</span>
+            <a href="?" class="clear-filters">Clear search</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Withdrawals Table -->
     <div class="table-container">
         <table class="table">
             <thead>
                 <tr>
-                    <th>User</th>
-                    <th>Date</th>
-                    <th>Amount</th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('username')" class="sort-header">
+                            Username 
+                            <i class="fas fa-sort{% if current_filters.sort == 'username' %}-up{% elif current_filters.sort == '-username' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('created_at')" class="sort-header">
+                            Date 
+                            <i class="fas fa-sort{% if current_filters.sort == 'created_at' %}-up{% elif current_filters.sort == '-created_at' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
+                    <th>Time</th>
                     <th>Wallet Address</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('status')" class="sort-header">
+                            Status 
+                            <i class="fas fa-sort{% if current_filters.sort == 'status' %}-up{% elif current_filters.sort == '-status' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for withdrawal in page_obj %}
                 <tr>
                     <td>{{ withdrawal.user.username }}</td>
-                    <td>{{ withdrawal.created_at|date:"M d, Y H:i" }}</td>
-                    <td>${{ withdrawal.amount|floatformat:2 }}</td>
+                    <td>{{ withdrawal.created_at|date:"d M, Y" }}</td>
+                    <td>{{ withdrawal.created_at|time:"H:i" }}</td>
                     <td>
                         <div class="wallet-address">
                             {{ withdrawal.wallet_address }}
                             <button class="copy-btn" onclick="copyToClipboard('{{ withdrawal.wallet_address }}')">
-                                Copy
+                                <i class="fas fa-copy"></i>
                             </button>
                         </div>
                     </td>
+                    <td>{{ withdrawal.description|default:"Withdrawal" }}</td>
+                    <td>${{ withdrawal.amount|floatformat:2 }}</td>
                     <td>
-                        <span class="status-badge status-{{ withdrawal.status }}">
+                        <span class="status-badge {% if withdrawal.status == 'approved' %}status-active{% elif withdrawal.status == 'pending' %}status-pending{% else %}status-inactive{% endif %}">
                             {{ withdrawal.status|title }}
                         </span>
                     </td>
-                    <td>
+                    <td class="action-cell">
                         {% if withdrawal.status == 'pending' %}
-                        <form method="post" action="{% url 'frontend:process_withdrawal' withdrawal.id %}" class="action-buttons">
-                            {% csrf_token %}
-                            <button type="submit" name="action" value="approve" class="btn btn-primary btn-sm">
-                                Approve
+                            <button onclick="approveWithdrawal({{ withdrawal.id }})" class="action-btn approve">
+                                <i class="fas fa-check"></i>
                             </button>
-                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
-                                Reject
+                            <button onclick="rejectWithdrawal({{ withdrawal.id }})" class="action-btn reject">
+                                <i class="fas fa-times"></i>
                             </button>
-                        </form>
+                        {% else %}
+                            <button class="action-btn disabled approve">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="action-btn disabled reject">
+                                <i class="fas fa-times"></i>
+                            </button>
                         {% endif %}
                     </td>
                 </tr>
@@ -57,23 +120,23 @@
             </tbody>
         </table>
     </div>
-    
+
     {% if page_obj.has_other_pages %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+            <a href="?{% query_transform request.GET page=page_obj.previous_page_number %}">&laquo; Previous</a>
         {% endif %}
         
         {% for num in page_obj.paginator.page_range %}
             {% if page_obj.number == num %}
                 <span class="current">{{ num }}</span>
             {% else %}
-                <a href="?page={{ num }}">{{ num }}</a>
+                <a href="?{% query_transform request.GET page=num %}">{{ num }}</a>
             {% endif %}
         {% endfor %}
         
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+            <a href="?{% query_transform request.GET page=page_obj.next_page_number %}">Next &raquo;</a>
         {% endif %}
     </div>
     {% endif %}
@@ -82,58 +145,338 @@
 
 {% block extra_css %}
 <style>
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
+    .withdrawals-dashboard {
+        padding: 24px;
+        background-color: #f4f4f5;
+        min-height: 100vh;
     }
-    
-    .action-buttons {
+
+    .stats-section {
+        margin-bottom: 24px;
+    }
+
+    .stats-label {
+        font-size: 14px;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .count-display {
+        font-size: 28px;
+        font-weight: 600;
+        color: #111827;
+        background-color: white;
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 4px;
+    }
+
+    .search-section {
+        margin-bottom: 24px;
+        width: 100%;
+    }
+
+    .search-container {
         display: flex;
-        gap: 0.5rem;
+        gap: 12px;
+        max-width: 600px;
+        margin: 0 auto;
     }
-    
+
+    .search-input-wrapper {
+        position: relative;
+        flex-grow: 1;
+    }
+
+    .search-input-wrapper input {
+        width: 100%;
+        padding: 12px 40px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+        color: #374151;
+        transition: all 0.2s ease;
+        background-color: white;
+    }
+
+    .search-input-wrapper input:focus {
+        border-color: #82c091;
+        box-shadow: 0 0 0 3px rgba(130, 192, 145, 0.2);
+        outline: none;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 16px;
+    }
+
+    .clear-search {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .btn-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #82c091;
+        color: white;
+        border: none;
+        padding: 0 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        height: 48px;
+    }
+
+    .btn-search:hover {
+        background-color: #6baf7a;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table thead {
+        background-color: #e8f5ea;
+    }
+
+    .table th {
+        padding: 16px 20px;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        font-size: 15px;
+        border-bottom: 1px solid #e5e7eb;
+        letter-spacing: 0.025em;
+    }
+
+    .table td {
+        padding: 12px 20px;
+        font-size: 14px;
+        color: #374151;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
     .wallet-address {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 8px;
         font-family: monospace;
-        font-size: 0.9rem;
     }
-    
+
     .copy-btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-        background: #f0f0f0;
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover {
+        color: #4b5563;
+        background-color: #f3f4f6;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background-color: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-inactive {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .action-cell {
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
         border: none;
         border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
     }
-    
-    .copy-btn:hover {
-        background: #e0e0e0;
+
+    .action-btn.approve {
+        background-color: #dcfce7;
+        color: #15803d;
     }
-    
-    .status-pending {
-        background: rgba(255, 193, 7, 0.1);
-        color: var(--warning);
+
+    .action-btn.reject {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .action-btn.approve:hover {
+        background-color: #bbf7d0;
+    }
+
+    .action-btn.reject:hover {
+        background-color: #fecaca;
+    }
+
+    .action-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 640px) {
+        .search-container {
+            flex-direction: column;
+        }
+
+        .btn-search {
+            height: 44px;
+        }
+
+        .search-input-wrapper input {
+            padding: 10px 36px;
+            font-size: 14px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        const btn = event.target;
-        const originalText = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(() => {
-            btn.textContent = originalText;
-        }, 2000);
-    }).catch(function(err) {
-        console.error('Failed to copy text: ', err);
-    });
-}
+    // Clear search functionality
+    const clearSearchBtn = document.getElementById('clearSearch');
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchForm').submit();
+        });
+    }
+
+    // Copy to clipboard functionality
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            // Show a temporary tooltip or change button text
+            const btn = event.target.closest('.copy-btn');
+            const icon = btn.querySelector('i');
+            icon.classList.remove('fa-copy');
+            icon.classList.add('fa-check');
+            setTimeout(() => {
+                icon.classList.remove('fa-check');
+                icon.classList.add('fa-copy');
+            }, 2000);
+        }).catch(function(err) {
+            console.error('Failed to copy text: ', err);
+        });
+    }
+
+    // Sorting functionality
+    function updateSort(field) {
+        const currentSort = document.getElementById('sortField').value;
+        let newSort = field;
+        
+        if (currentSort === field) {
+            newSort = '-' + field;
+        } else if (currentSort === '-' + field) {
+            newSort = field;
+        }
+        
+        document.getElementById('sortField').value = newSort;
+        document.getElementById('searchForm').submit();
+    }
+
+    // Withdrawal actions
+    function approveWithdrawal(id) {
+        if (confirm('Are you sure you want to approve this withdrawal?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/withdrawal/${id}/process/`;
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'approve';
+            
+            form.appendChild(csrfInput);
+            form.appendChild(actionInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    function rejectWithdrawal(id) {
+        if (confirm('Are you sure you want to reject this withdrawal?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/withdrawal/${id}/process/`;
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'reject';
+            
+            form.appendChild(csrfInput);
+            form.appendChild(actionInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
 </script>
 {% endblock %} 

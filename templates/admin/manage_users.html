@@ -21,17 +21,41 @@
     </div>
     {% endif %}
 
-    <!-- Filters Section -->
-    <form method="get" class="filters-section" id="filterForm">
-        <div class="search-group">
-            <div class="search-input">
-                <input type="text" name="search" placeholder="Search" class="form-control" value="{{ current_filters.search }}">
+    <!-- Search Section -->
+    <div class="search-section">
+        <form method="get" id="searchForm" class="search-container">
+            <div class="search-input-wrapper">
                 <i class="fas fa-search search-icon"></i>
+                <input 
+                    type="text" 
+                    name="search" 
+                    id="searchInput"
+                    placeholder="Search by username, email, or plan..." 
+                    class="form-control" 
+                    value="{{ current_filters.search }}"
+                    autocomplete="off"
+                >
+                {% if current_filters.search %}
+                    <button type="button" class="clear-search" id="clearSearch">
+                        <i class="fas fa-times"></i>
+                    </button>
+                {% endif %}
             </div>
-            <button type="submit" class="btn btn-view">View</button>
+            <button type="submit" class="btn-search">
+                <span>Search</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <input type="hidden" name="sort" value="{{ current_filters.sort }}" id="sortField">
+        </form>
+        <div id="searchSuggestions" class="search-suggestions"></div>
+
+        {% if current_filters.search %}
+        <div class="search-results-info">
+            <span>Found {{ total_users }} result{{ total_users|pluralize }} for "{{ current_filters.search }}"</span>
+            <a href="?" class="clear-filters">Clear search</a>
         </div>
-        <input type="hidden" name="sort" value="{{ current_filters.sort }}" id="sortField">
-    </form>
+        {% endif %}
+    </div>
 
     <!-- Users Table -->
     <div class="table-container">
@@ -141,56 +165,151 @@
         border-radius: 4px;
     }
 
-    .filters-section {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        margin-bottom: 16px;
-        gap: 16px;
+    .search-section {
+        margin-bottom: 24px;
+        width: 100%;
     }
 
-    .search-group {
+    .search-container {
         display: flex;
-        gap: 8px;
-        align-items: center;
+        gap: 12px;
+        max-width: 600px;
+        margin: 0 auto;
     }
 
-    .search-input {
+    .search-input-wrapper {
         position: relative;
+        flex-grow: 1;
     }
 
-    .search-input input {
-        padding: 8px 16px;
-        padding-right: 40px;
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        width: 240px;
-        font-size: 14px;
+    .search-input-wrapper input {
+        width: 100%;
+        padding: 12px 40px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
         color: #374151;
+        transition: all 0.2s ease;
+        background-color: white;
+    }
+
+    .search-input-wrapper input:focus {
+        border-color: #82c091;
+        box-shadow: 0 0 0 3px rgba(130, 192, 145, 0.2);
+        outline: none;
     }
 
     .search-icon {
         position: absolute;
-        right: 12px;
+        left: 12px;
         top: 50%;
         transform: translateY(-50%);
         color: #9ca3af;
-        font-size: 14px;
+        font-size: 16px;
     }
 
-    .btn-view {
+    .clear-search {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .clear-search:hover {
+        background-color: #f3f4f6;
+        color: #4b5563;
+    }
+
+    .btn-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         background-color: #82c091;
         color: white;
         border: none;
-        padding: 8px 20px;
-        border-radius: 4px;
-        font-size: 14px;
+        padding: 0 20px;
+        border-radius: 8px;
+        font-size: 16px;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
+        height: 48px;
     }
 
-    .btn-view:hover {
+    .btn-search:hover {
         background-color: #6baf7a;
+    }
+
+    .search-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-width: 600px;
+        margin: 4px auto 0;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        z-index: 10;
+        display: none;
+    }
+
+    .search-suggestion-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .search-suggestion-item:hover {
+        background-color: #f9fafb;
+    }
+
+    .search-results-info {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background-color: #f9fafb;
+        border-radius: 8px;
+        margin: 16px auto 0;
+        max-width: 600px;
+        font-size: 14px;
+        color: #4b5563;
+    }
+
+    .clear-filters {
+        color: #82c091;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .clear-filters:hover {
+        color: #6baf7a;
+    }
+
+    @media (max-width: 640px) {
+        .search-container {
+            flex-direction: column;
+        }
+
+        .btn-search {
+            height: 44px;
+        }
+
+        .search-input-wrapper input {
+            padding: 10px 36px;
+            font-size: 14px;
+        }
     }
 
     .table-container {
@@ -210,16 +329,17 @@
     }
 
     .table th {
-        padding: 12px 16px;
+        padding: 16px 20px;
         text-align: left;
-        font-weight: 500;
+        font-weight: 600;
         color: #374151;
-        font-size: 14px;
+        font-size: 15px;
         border-bottom: 1px solid #e5e7eb;
+        letter-spacing: 0.025em;
     }
 
     .table td {
-        padding: 12px 16px;
+        padding: 12px 20px;
         font-size: 14px;
         color: #374151;
         border-bottom: 1px solid #f3f4f6;
@@ -320,20 +440,71 @@
         
         // Update hidden sort field and submit form
         document.getElementById('sortField').value = newSort;
-        document.getElementById('filterForm').submit();
+        document.getElementById('searchForm').submit();
     }
 
-    // Preserve search params in pagination links
-    function updateQueryStringParameter(key, value) {
-        const uri = window.location.href;
-        const re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
-        const separator = uri.indexOf('?') !== -1 ? "&" : "?";
-        
-        if (uri.match(re)) {
-            return uri.replace(re, '$1' + key + "=" + value + '$2');
-        } else {
-            return uri + separator + key + "=" + value;
-        }
+    // Clear search functionality
+    const clearSearchBtn = document.getElementById('clearSearch');
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchForm').submit();
+        });
     }
+
+    // Real-time search suggestions
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsContainer = document.getElementById('searchSuggestions');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        const query = e.target.value.trim();
+
+        if (query.length < 2) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`/admin/users/search-suggestions/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.suggestions.length > 0) {
+                        suggestionsContainer.innerHTML = data.suggestions
+                            .map(suggestion => `
+                                <div class="search-suggestion-item" onclick="selectSuggestion('${suggestion}')">
+                                    ${suggestion}
+                                </div>
+                            `).join('');
+                        suggestionsContainer.style.display = 'block';
+                    } else {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                });
+        }, 300);
+    });
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-input-wrapper') && !e.target.closest('.search-suggestions')) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    // Select suggestion
+    function selectSuggestion(value) {
+        searchInput.value = value;
+        suggestionsContainer.style.display = 'none';
+        document.getElementById('searchForm').submit();
+    }
+
+    // Handle Enter key
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('searchForm').submit();
+        }
+    });
 </script>
 {% endblock %}

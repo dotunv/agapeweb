@@ -1,33 +1,90 @@
 {% extends 'admin/base_admin.html' %}
+{% load query_transform %}
 
 {% block title %}Manage Deposits - AgapeThrift{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Manage Deposits</h1>
-</div>
+<div class="deposits-dashboard">
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stats-label">Number of Deposits</div>
+        <div class="count-display">{{ page_obj.paginator.count }}</div>
+    </div>
 
-<div class="card">
+    <!-- Search Section -->
+    <div class="search-section">
+        <form method="get" id="searchForm" class="search-container">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                    type="text" 
+                    name="search" 
+                    id="searchInput"
+                    placeholder="Search by username or description..." 
+                    class="form-control" 
+                    value="{{ current_filters.search }}"
+                    autocomplete="off"
+                >
+                {% if current_filters.search %}
+                    <button type="button" class="clear-search" id="clearSearch">
+                        <i class="fas fa-times"></i>
+                    </button>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn-search">
+                <span>Search</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <input type="hidden" name="sort" value="{{ current_filters.sort }}" id="sortField">
+        </form>
+        <div id="searchSuggestions" class="search-suggestions"></div>
+
+        {% if current_filters.search %}
+        <div class="search-results-info">
+            <span>Found {{ total_deposits }} result{{ total_deposits|pluralize }} for "{{ current_filters.search }}"</span>
+            <a href="?" class="clear-filters">Clear search</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Deposits Table -->
     <div class="table-container">
         <table class="table">
             <thead>
                 <tr>
-                    <th>User</th>
-                    <th>Date</th>
-                    <th>Amount</th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('username')" class="sort-header">
+                            Username 
+                            <i class="fas fa-sort{% if current_filters.sort == 'username' %}-up{% elif current_filters.sort == '-username' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('created_at')" class="sort-header">
+                            Date 
+                            <i class="fas fa-sort{% if current_filters.sort == 'created_at' %}-up{% elif current_filters.sort == '-created_at' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
+                    <th>Time</th>
                     <th>Description</th>
-                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>
+                        <a href="javascript:void(0)" onclick="updateSort('status')" class="sort-header">
+                            Status 
+                            <i class="fas fa-sort{% if current_filters.sort == 'status' %}-up{% elif current_filters.sort == '-status' %}-down{% endif %}"></i>
+                        </a>
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 {% for deposit in page_obj %}
                 <tr>
                     <td>{{ deposit.user.username }}</td>
-                    <td>{{ deposit.created_at|date:"M d, Y H:i" }}</td>
-                    <td>${{ deposit.amount|floatformat:2 }}</td>
+                    <td>{{ deposit.created_at|date:"d M, Y" }}</td>
+                    <td>{{ deposit.created_at|time:"H:i" }}</td>
                     <td>{{ deposit.description }}</td>
+                    <td>${{ deposit.amount|floatformat:2 }}</td>
                     <td>
-                        <span class="status-badge status-{{ deposit.status }}">
+                        <span class="status-badge {% if deposit.status == 'completed' %}status-active{% elif deposit.status == 'pending' %}status-pending{% else %}status-inactive{% endif %}">
                             {{ deposit.status|title }}
                         </span>
                     </td>
@@ -36,23 +93,23 @@
             </tbody>
         </table>
     </div>
-    
+
     {% if page_obj.has_other_pages %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}">&laquo; Previous</a>
+            <a href="?{% query_transform request.GET page=page_obj.previous_page_number %}">&laquo; Previous</a>
         {% endif %}
         
         {% for num in page_obj.paginator.page_range %}
             {% if page_obj.number == num %}
                 <span class="current">{{ num }}</span>
             {% else %}
-                <a href="?page={{ num }}">{{ num }}</a>
+                <a href="?{% query_transform request.GET page=num %}">{{ num }}</a>
             {% endif %}
         {% endfor %}
         
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+            <a href="?{% query_transform request.GET page=page_obj.next_page_number %}">Next &raquo;</a>
         {% endif %}
     </div>
     {% endif %}
@@ -61,19 +118,209 @@
 
 {% block extra_css %}
 <style>
-    .status-completed {
-        background: rgba(40, 167, 69, 0.1);
-        color: var(--success);
+    .deposits-dashboard {
+        padding: 24px;
+        background-color: #f4f4f5;
+        min-height: 100vh;
     }
-    
-    .status-failed {
-        background: rgba(220, 53, 69, 0.1);
-        color: var(--danger);
+
+    .stats-section {
+        margin-bottom: 24px;
     }
-    
+
+    .stats-label {
+        font-size: 14px;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .count-display {
+        font-size: 28px;
+        font-weight: 600;
+        color: #111827;
+        background-color: white;
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 4px;
+    }
+
+    .search-section {
+        margin-bottom: 24px;
+        width: 100%;
+    }
+
+    .search-container {
+        display: flex;
+        gap: 12px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        flex-grow: 1;
+    }
+
+    .search-input-wrapper input {
+        width: 100%;
+        padding: 12px 40px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 16px;
+        color: #374151;
+        transition: all 0.2s ease;
+        background-color: white;
+    }
+
+    .search-input-wrapper input:focus {
+        border-color: #82c091;
+        box-shadow: 0 0 0 3px rgba(130, 192, 145, 0.2);
+        outline: none;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 16px;
+    }
+
+    .clear-search {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .btn-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #82c091;
+        color: white;
+        border: none;
+        padding: 0 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        height: 48px;
+    }
+
+    .btn-search:hover {
+        background-color: #6baf7a;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table thead {
+        background-color: #e8f5ea;
+    }
+
+    .table th {
+        padding: 16px 20px;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        font-size: 15px;
+        border-bottom: 1px solid #e5e7eb;
+        letter-spacing: 0.025em;
+    }
+
+    .table td {
+        padding: 12px 20px;
+        font-size: 14px;
+        color: #374151;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background-color: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-inactive {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
     .status-pending {
-        background: rgba(255, 193, 7, 0.1);
-        color: var(--warning);
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    @media (max-width: 640px) {
+        .search-container {
+            flex-direction: column;
+        }
+
+        .btn-search {
+            height: 44px;
+        }
+
+        .search-input-wrapper input {
+            padding: 10px 36px;
+            font-size: 14px;
+        }
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Clear search functionality
+    const clearSearchBtn = document.getElementById('clearSearch');
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchForm').submit();
+        });
+    }
+
+    // Sorting functionality
+    function updateSort(field) {
+        const currentSort = document.getElementById('sortField').value;
+        let newSort = field;
+        
+        if (currentSort === field) {
+            newSort = '-' + field;
+        } else if (currentSort === '-' + field) {
+            newSort = field;
+        }
+        
+        document.getElementById('sortField').value = newSort;
+        document.getElementById('searchForm').submit();
+    }
+</script>
 {% endblock %} 
