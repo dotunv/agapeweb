@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, get_user_model
 from django.contrib import messages
 from users.models import User, Notification
 from subscriptions.models import Subscription, Plan, Referral, Wallet
@@ -12,86 +12,28 @@ import json
 import uuid
 from django.core.paginator import Paginator
 from django.utils import timezone
+from django.urls import reverse
+
+User = get_user_model()
 
 def home(request):
     """Home page view."""
     return render(request, 'home.html')
 
 def register(request):
-    """User registration view."""
-    if request.user.is_authenticated:
-        return redirect('frontend:dashboard')
-        
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-        referral_code = request.POST.get('referral_code') or request.GET.get('ref')
-        
-        if password != confirm_password:
-            messages.error(request, 'Passwords do not match.')
-            return render(request, 'registration/register.html')
-            
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
-            return render(request, 'registration/register.html')
-            
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email already exists.')
-            return render(request, 'registration/register.html')
-            
-        # Create the user
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
-        )
-        
-        # Handle referral
-        if referral_code:
-            try:
-                referrer = User.objects.get(referral_code=referral_code)
-                user.referred_by = referrer
-                user.save()
-                
-                # Create referral record
-                Referral.objects.create(
-                    referrer=referrer,
-                    referred_user=user,
-                    bonus_amount=0  # Will be updated when user subscribes to a plan
-                )
-                
-                messages.success(request, f'Successfully registered with referral from {referrer.username}!')
-            except User.DoesNotExist:
-                messages.warning(request, 'Invalid referral code.')
-            
-        # Authenticate the user
-        user = authenticate(
-            request,
-            username=username,
-            password=password,
-            backend='django.contrib.auth.backends.ModelBackend'
-        )
-        
-        if user is not None:
-            login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('frontend:dashboard')
-        else:
-            messages.error(request, 'Authentication failed.')
-            return render(request, 'registration/register.html')
-        
-    # For GET requests, check for referral code in query params
+    """Handle registration with referral code."""
     referral_code = request.GET.get('ref')
-    try:
-        if referral_code:
+    if referral_code:
+        try:
             referrer = User.objects.get(referral_code=referral_code)
             messages.info(request, f'Registering with referral from {referrer.username}')
-    except User.DoesNotExist:
-        messages.warning(request, 'Invalid referral code.')
-        
-    return render(request, 'registration/register.html', {'referral_code': referral_code})
+            # Store referral code in session
+            request.session['referral_code'] = referral_code
+        except User.DoesNotExist:
+            messages.warning(request, 'Invalid referral code.')
+    
+    # Redirect to allauth's signup view
+    return redirect('account_signup')
 
 @login_required
 def dashboard(request):

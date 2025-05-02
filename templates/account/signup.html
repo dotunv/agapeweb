@@ -1,49 +1,440 @@
-{% extends "base.html" %}
+{% load static %}
 {% load i18n %}
-{% load account %}
+{% load widget_tweaks %} {# Load widget_tweaks for easily adding attributes #}
 
-{% block head_title %}{% trans "Sign Up" %}{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Create Account" %} - AgapeThrift</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.png' %}"> {# Added favicon based on dashboard #}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"> {# Added Poppins font based on dashboard #}
+    <style>
+        :root {
+             /* Define theme colors used */
+            --primary-color: #00A651;
+            --primary-dark: #008541;
+            --text-color: #1b2c25; /* Dark text from image */
+            --text-light: #666666;
+            --input-bg: #ECECEC; /* Light grey input bg from image */
+            --input-border: #E0E0E0; /* Subtle border */
+            --white: #FFFFFF;
+            --danger-bg: #FEE2E2;
+            --danger-text: #DC2626;
+            --danger-border: #FCA5A5;
+            --body-bg: #f4f7f6; /* Slightly off-white background */
+        }
 
-{% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h1 class="text-center mb-4">{% trans "Sign Up" %}</h1>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
 
-                    {% if messages %}
-                    <div class="messages">
-                        {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">
-                            {{ message }}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: var(--body-bg);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 30px 15px;
+        }
 
-                    <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        {% if redirect_field_value %}
-                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-                        {% endif %}
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-primary" type="submit">{% trans "Sign Up" %}</button>
-                        </div>
-                    </form>
+        .auth-card {
+            width: 100%;
+            max-width: 850px; /* Wider card for two columns */
+            background-color: var(--white);
+            border-radius: 20px; /* More rounded corners like image */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+            display: flex;
+            overflow: hidden; /* Ensure children stay within rounded corners */
+        }
 
-                    <div class="mt-3 text-center">
-                        <p>
-                            {% trans "Already have an account?" %}
-                            <a href="{% url 'account_login' %}{% if redirect_field_value %}?{{ redirect_field_name }}={{ redirect_field_value }}{% endif %}" class="link-primary">
-                                {% trans "Sign In" %}
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
+        .auth-form-column {
+            flex: 1 1 55%; /* Takes slightly more space */
+            padding: 40px 50px; /* Generous padding */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .auth-logo-column {
+            flex: 1 1 45%; /* Takes slightly less space */
+            background-color: var(--white); /* Ensure white bg if needed */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+             border-left: 1px solid #f0f0f0; /* Subtle separator */
+        }
+
+        .auth-header {
+            margin-bottom: 30px;
+            text-align: left; /* Align left as per image */
+        }
+
+        /* No small logo in header if large one is on right */
+        /* .auth-logo { height: 50px; margin-bottom: 20px; } */
+
+        .auth-title {
+            font-size: 1.6rem; /* Slightly smaller title */
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0 0 5px 0;
+        }
+
+        .auth-subtitle {
+            color: var(--text-light);
+            font-size: 0.9rem; /* Slightly smaller subtitle */
+            margin: 0;
+        }
+
+        .auth-form {
+            flex-grow: 1; /* Allow form to take space */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 18px; /* Slightly less margin */
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600; /* Bold labels like image */
+            color: var(--text-color);
+            font-size: 0.85rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 18px; /* Adjust padding */
+            border: 1px solid var(--input-border);
+            background-color: var(--input-bg); /* Light grey background */
+            border-radius: 10px; /* Rounded inputs */
+            font-size: 0.95rem;
+            color: var(--text-color);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .form-input::placeholder { /* Style placeholder */
+            color: #999;
+            opacity: 1;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: var(--white); /* Optional: White bg on focus */
+            box-shadow: 0 0 0 3px rgba(0, 166, 81, 0.1);
+        }
+
+        .password-input-wrapper { /* Renamed for clarity */
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px; /* Position icon */
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            color: var(--text-light); /* Icon color */
+        }
+        .toggle-password svg { /* Style SVG icon */
+            width: 20px;
+            height: 20px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .toggle-password:hover svg {
+            opacity: 1;
+        }
+
+
+        .auth-button {
+            width: 100%;
+            padding: 14px; /* Match input padding */
+            /* background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-dark) 100%); */
+            background-color: var(--primary-color); /* Solid color easier */
+            color: white;
+            border: none;
+            border-radius: 10px; /* Match input radius */
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            margin-top: 10px; /* Space above button */
+        }
+        .auth-button:hover {
+            background-color: var(--primary-dark);
+        }
+         .auth-button:active {
+            transform: scale(0.98);
+         }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 25px; /* Space below button */
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        .auth-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600; /* Bold link */
+        }
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+        .error-alert {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid var(--danger-border);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+        .error-alert ul { /* Style default error list from allauth */
+             list-style: none;
+             padding: 0;
+             margin: 0;
+        }
+         .error-alert li {
+             margin-bottom: 5px;
+         }
+         .error-alert li:last-child {
+             margin-bottom: 0;
+         }
+
+        /* Field specific errors (from widget_tweaks or allauth) */
+        .form-group.error .form-label {
+            color: var(--danger-text);
+        }
+        .form-group.error .form-input {
+            border-color: var(--danger-border);
+        }
+        .form-group.error .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+        .error-text {
+             color: var(--danger-text);
+             font-size: 0.8rem;
+             margin-top: 4px;
+             display: block;
+        }
+
+
+        .main-logo { /* Style the large logo */
+            max-width: 80%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 880px) {
+             .auth-card {
+                flex-direction: column;
+                max-width: 450px; /* Narrower card for single column */
+             }
+             .auth-logo-column {
+                 display: none; /* Hide logo column on smaller screens */
+             }
+             .auth-form-column {
+                 padding: 30px 30px; /* Adjust padding */
+                 width: 100%;
+             }
+             .auth-title {
+                font-size: 1.5rem;
+             }
+             .auth-subtitle {
+                font-size: 0.85rem;
+             }
+             .auth-header {
+                text-align: center; /* Center header */
+             }
+        }
+
+         @media (max-width: 480px) {
+             body {
+                 padding: 20px 10px;
+             }
+             .auth-form-column {
+                 padding: 25px 20px;
+             }
+              .auth-title {
+                font-size: 1.4rem;
+             }
+             .form-input, .auth-button {
+                 padding: 12px 15px;
+                 font-size: 0.9rem;
+             }
+             .auth-links {
+                 font-size: 0.85rem;
+             }
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <div class="auth-form-column">
+        <div class="auth-header">
+            <h1 class="auth-title">{% trans "Welcome to AgapeThrift" %}</h1>
+            <p class="auth-subtitle">{% trans "Let's get you started" %}</p>
         </div>
+
+        {# Use the form passed by allauth's SignupView #}
+        <form method="post" action="{% url 'account_signup' %}" class="auth-form" novalidate>
+            {% csrf_token %}
+
+            {# Display Non-Field Errors (e.g., user already exists) #}
+            {% if form.non_field_errors %}
+            <div class="error-alert">
+                {% for error in form.non_field_errors %}
+                    <span>{{ error }}</span><br>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {# Display All Field Errors Together (Alternative/Optional) #}
+            {# {% if form.errors %}
+            <div class="error-alert">
+                 <ul>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{% if field != '__all__' %}{{ field|title }}: {% endif %}{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                 </ul>
+            </div>
+            {% endif %} #}
+
+            {# Username Field (Assuming it's used/added) #}
+            {% with field=form.username %}
+            <div class="form-group {% if field.errors %}error{% endif %}">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {% render_field field class+="form-input" placeholder="Enter Username" %}
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                    <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            {% endwith %}
+
+            {# Email Field #}
+            {% with field=form.email %}
+            <div class="form-group {% if field.errors %}error{% endif %}">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                 {# Use type="email" for better browser validation #}
+                {% render_field field type="email" class+="form-input" placeholder="Enter Email Address" %}
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                    <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+             {% endwith %}
+
+            {# Referral Code Field #}
+            {% with field=form.referral_code %}
+            <div class="form-group {% if field.errors %}error{% endif %}">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {% render_field field class+="form-input" placeholder="Enter Referral Code (Optional)" %}
+                {% if field.help_text %}
+                <small class="form-text text-muted" style="display: block; margin-top: 4px; font-size: 0.8rem; color: var(--text-light);">
+                    {{ field.help_text }}
+                </small>
+                {% endif %}
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                    <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            {% endwith %}
+
+            {# Password Field #}
+             {% with field=form.password1 %}
+            <div class="form-group {% if field.errors %}error{% endif %}">
+                {# Allauth's default label is "Password", change if needed #}
+                <label for="{{ field.id_for_label }}" class="form-label">{% trans "Password" %}</label>
+                <div class="password-input-wrapper">
+                    {% render_field field class+="form-input" placeholder="Enter Password" %}
+                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('{{ field.id_for_label }}', this)">
+                         {# Use SVG icon for eye #}
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="eye-icon"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 6c3.79 0 7.17 2.13 8.82 5.5C19.17 14.87 15.79 17 12 17s-7.17-2.13-8.82-5.5C4.83 8.13 8.21 6 12 6m0-2C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 5c1.38 0 2.5 1.12 2.5 2.5S13.38 14 12 14s-2.5-1.12-2.5-2.5S10.62 9 12 9m0-2c-2.48 0-4.5 2.02-4.5 4.5S9.52 16 12 16s4.5-2.02 4.5-4.5S14.48 7 12 7z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="eye-slash-icon" style="display: none;"><path d="M0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0z" fill="none"/><path d="M12 6c3.79 0 7.17 2.13 8.82 5.5-.59 1.22-1.32 2.3-2.17 3.24l1.42 1.42C21.43 14.96 22 13.28 22 11.5 20.27 7.11 16 4 12 4c-1.28 0-2.5.23-3.64.65l1.56 1.56C10.51 6.09 11.23 6 12 6zm-1.05 9.3l1.42 1.42C12.15 16.9 11.83 17 11.5 17 7.83 17 4.83 14.87 3.18 11.5c.46-1.07 1.07-2.05 1.82-2.89L6.43 10.04C6.15 10.49 6 10.98 6 11.5c0 1.38 1.12 2.5 2.5 2.5.17 0 .33-.02.5-.05zM2.1 4.93l1.41 1.41L4.93 7.76C3.56 8.86 2.41 10.1 1.59 11.5 3.32 15.89 7.5 19 12 19c1.59 0 3.1-.27 4.52-.75l2.54 2.54 1.41-1.41L3.51 3.51 2.1 4.93zM12 9c1.38 0 2.5 1.12 2.5 2.5 0 .42-.11.81-.29 1.16l1.49 1.49C16.55 13.99 17 12.79 17 11.5c0-2.76-2.24-5-5-5-.47 0-.92.07-1.36.19l1.5 1.5c.19-.01.38-.02.57-.02z"/></svg>
+                    </button>
+                </div>
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                    <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            {% endwith %}
+
+            {# Confirm Password Field #}
+            {% with field=form.password2 %}
+            <div class="form-group {% if field.errors %}error{% endif %}">
+                <label for="{{ field.id_for_label }}" class="form-label">{% trans "Confirm Password" %}</label>
+                 <div class="password-input-wrapper">
+                    {% render_field field class+="form-input" placeholder="Confirm Password" %}
+                     <button type="button" class="toggle-password" onclick="togglePasswordVisibility('{{ field.id_for_label }}', this)">
+                        {# Use SVG icon for eye #}
+                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="eye-icon"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 6c3.79 0 7.17 2.13 8.82 5.5C19.17 14.87 15.79 17 12 17s-7.17-2.13-8.82-5.5C4.83 8.13 8.21 6 12 6m0-2C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 5c1.38 0 2.5 1.12 2.5 2.5S13.38 14 12 14s-2.5-1.12-2.5-2.5S10.62 9 12 9m0-2c-2.48 0-4.5 2.02-4.5 4.5S9.52 16 12 16s4.5-2.02 4.5-4.5S14.48 7 12 7z"/></svg>
+                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor" class="eye-slash-icon" style="display: none;"><path d="M0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0z" fill="none"/><path d="M12 6c3.79 0 7.17 2.13 8.82 5.5-.59 1.22-1.32 2.3-2.17 3.24l1.42 1.42C21.43 14.96 22 13.28 22 11.5 20.27 7.11 16 4 12 4c-1.28 0-2.5.23-3.64.65l1.56 1.56C10.51 6.09 11.23 6 12 6zm-1.05 9.3l1.42 1.42C12.15 16.9 11.83 17 11.5 17 7.83 17 4.83 14.87 3.18 11.5c.46-1.07 1.07-2.05 1.82-2.89L6.43 10.04C6.15 10.49 6 10.98 6 11.5c0 1.38 1.12 2.5 2.5 2.5.17 0 .33-.02.5-.05zM2.1 4.93l1.41 1.41L4.93 7.76C3.56 8.86 2.41 10.1 1.59 11.5 3.32 15.89 7.5 19 12 19c1.59 0 3.1-.27 4.52-.75l2.54 2.54 1.41-1.41L3.51 3.51 2.1 4.93zM12 9c1.38 0 2.5 1.12 2.5 2.5 0 .42-.11.81-.29 1.16l1.49 1.49C16.55 13.99 17 12.79 17 11.5c0-2.76-2.24-5-5-5-.47 0-.92.07-1.36.19l1.5 1.5c.19-.01.38-.02.57-.02z"/></svg>
+                    </button>
+                </div>
+                {% if field.errors %}
+                    {% for error in field.errors %}
+                    <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            {% endwith %}
+
+            {# Add potential terms & conditions agreement here if needed #}
+
+            <button type="submit" class="auth-button">{% trans "Create An Account" %}</button>
+
+            <div class="auth-links">
+                <p>{% trans "Already a member?" %} <a href="{% url 'account_login' %}">{% trans "Log In" %}</a></p>
+            </div>
+        </form>
+    </div>
+    <div class="auth-logo-column">
+         {# Use the main logo from the image #}
+        <img src="{% static 'images/register-img.png' %}" alt="Agape Thrift Logo" class="main-logo">
     </div>
 </div>
-{% endblock %} 
+
+<script>
+function togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    const eyeIcon = button.querySelector('.eye-icon');
+    const eyeSlashIcon = button.querySelector('.eye-slash-icon');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        eyeIcon.style.display = 'none';
+        eyeSlashIcon.style.display = 'inline';
+    } else {
+        input.type = 'password';
+        eyeIcon.style.display = 'inline';
+        eyeSlashIcon.style.display = 'none';
+    }
+}
+</script>
+
+</body>
+</html>

@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'migraph',
     'plans',
     'csp',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -539,4 +540,8 @@ PERMISSIONS_POLICY = {
     'private-state-token-redemption': [],
     'run-ad-auction': [],
     'attribution-reporting': [],
+}
+
+ACCOUNT_FORMS = {
+    'signup': 'users.forms.CustomSignupForm',
 }
