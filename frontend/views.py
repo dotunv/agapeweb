@@ -99,11 +99,32 @@ def dashboard(request):
     # Get user's active subscription if any
     user_plan = Subscription.objects.filter(user=request.user, status='active').first()
     
+    # Prepare current plan data if exists
+    current_plan = None
+    if user_plan:
+        current_plan = {
+            'name': user_plan.plan.name,
+            'status': user_plan.status,
+            'current_cycle': 1,  # You may need to calculate this based on your business logic
+            'total_cycles': 1,   # You may need to calculate this based on your business logic
+            'progress_percentage': 0  # You may need to calculate this based on your business logic
+        }
+    
+    # Get recent subscriptions with plan prices
+    recent_subscriptions = []
+    for sub in Subscription.objects.filter(user=request.user).order_by('-joined_at')[:5]:
+        recent_subscriptions.append({
+            'user': sub.user,
+            'created_at': sub.joined_at,
+            'amount': sub.plan.contribution_amount
+        })
+    
     context = {
         'user_balance': request.user.balance,
-        'recent_subscriptions': Subscription.objects.filter(user=request.user).order_by('-joined_at')[:5],
+        'recent_subscriptions': recent_subscriptions,
         'available_plans': Plan.objects.all(),
         'user_plan': user_plan,
+        'current_plan': current_plan,
         'unread_notifications_count': request.user.notifications.filter(read=False).count()
     }
     return render(request, 'dashboard/dashboard.html', context)

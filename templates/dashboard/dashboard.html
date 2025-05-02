@@ -61,7 +61,7 @@
                     <div class="subscription-date">{{ subscription.created_at|date:"j M, Y" }}</div>
                 </div>
                  {# Use intcomma if amounts can be large #}
-                <div class="subscription-amount">+${{ subscription.amount|floatformat:2|intcomma }}</div>
+                <div class="subscription-amount">${{ subscription.amount|floatformat:2|intcomma }}</div>
             </div>
             {% empty %}
                  <p class="no-subscriptions-message">No recent subscriptions to display.</p>

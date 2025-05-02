@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load account %}
+{% load static %}
+
+{% block title %}{% trans "Confirm Email Address" %}{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <img src="{% static 'images/logo.png' %}" alt="Agape Thrift Logo" class="auth-logo">
+            <h1 class="auth-title">{% trans "Confirm Email Address" %}</h1>
+            <p class="auth-subtitle">{% trans "Please confirm your email address to complete your registration" %}</p>
+        </div>
+
+        {% if confirmation %}
+            {% user_display confirmation.email_address.user as user_display %}
+            <div class="verification-message">
+                <p>{% blocktrans with confirmation.email_address.email as email %}Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an email address for user {{ user_display }}.{% endblocktrans %}</p>
+            </div>
+
+            <form method="post" action="{% url 'account_confirm_email' confirmation.key %}" class="auth-form">
+                {% csrf_token %}
+                <button type="submit" class="auth-button">{% trans 'Confirm' %}</button>
+            </form>
+        {% else %}
+            <div class="verification-message">
+                <p>{% trans "This email confirmation link expired or is invalid. Please" %} <a href="{% url 'account_email' %}">{% trans "issue a new email confirmation request" %}</a>.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 200px);
+        padding: var(--spacing-xl) var(--spacing-md);
+        background-color: var(--background-light);
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 500px;
+        background-color: var(--background-light);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: var(--spacing-xl);
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .auth-logo {
+        height: 50px;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .auth-title {
+        font-size: 1.8rem;
+        color: var(--text-color);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .auth-subtitle {
+        color: var(--text-light);
+        font-size: 0.95rem;
+    }
+
+    .verification-message {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+        color: var(--text-color);
+        line-height: 1.6;
+    }
+
+    .verification-message a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .verification-message a:hover {
+        text-decoration: underline;
+    }
+
+    .auth-form {
+        margin-top: var(--spacing-xl);
+    }
+
+    .auth-button {
+        width: 100%;
+        padding: var(--spacing-md);
+        background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-md);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity var(--transition-fast);
+    }
+
+    .auth-button:hover {
+        opacity: 0.9;
+    }
+
+    @media (max-width: 480px) {
+        .auth-card {
+            padding: var(--spacing-lg) var(--spacing-md);
+        }
+    }
+</style>
+{% endblock %} 
