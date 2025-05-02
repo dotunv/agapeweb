@@ -1,7 +1,8 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% load static %}
+{% load humanize %} {# Optional: For better number formatting if needed #}
 
-{% block page_title %}Dashboard Overview{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block title %}Dashboard - AgapeThrift{% endblock %}
 
@@ -11,87 +12,86 @@
 
 {% block content %}
 <div class="content-grid">
-    <div class="main-cards">
-        <!-- Balance Card -->
-        <div class="balance-card">
-            <div class="balance-label">Current Balance</div>
-            <div class="balance-amount">${{ user_balance|floatformat:2 }}</div>
-            <div class="balance-meta">Username: {{ user.username }}</div>
-        </div>
 
-        <!-- Current Plan -->
+    <!-- Balance Card -->
+    <div class="balance-card card"> {# Added 'card' base class #}
+        <div class="balance-label">Current Balance</div>
+        {# Use intcomma from humanize for thousands separators if desired #}
+        <div class="balance-amount">${{ user_balance|floatformat:2|intcomma }}</div>
+        <div class="balance-meta">Username: {{ user.username }}</div>
+    </div>
+
+    <!-- Current Plan -->
+    <div class="current-plan card"> {# Added 'card' base class #}
         {% if current_plan %}
-        <div class="current-plan">
             <div class="plan-header">
                 <div class="plan-title">Current Plan</div>
                 <div class="plan-badge">{{ current_plan.name }}</div>
             </div>
-            <div class="progress-text">{{ current_plan.current_cycle }}/{{ current_plan.total_cycles }}</div>
+            <div class="progress-text">{{ current_plan.current_cycle }}/{{ current_plan.total_cycles }} Cycles</div>
             <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ current_plan.progress_percentage }}%"></div>
+                {# Ensure progress_percentage is between 0 and 100 in your view #}
+                <div class="progress-fill" style="width: {{ current_plan.progress_percentage|default:0 }}%"></div>
             </div>
+            {% if current_plan.withdrawal_note %}
             <div class="progress-note">{{ current_plan.withdrawal_note }}</div>
-            <div class="plan-status">Status: {{ current_plan.status }}</div>
-        </div>
+            {% endif %}
+             {# Add 'inactive' class based on status if needed #}
+            <div class="plan-status {% if current_plan.status != 'Active' %}inactive{% endif %}">Status: {{ current_plan.status }}</div>
         {% else %}
-        <div class="current-plan">
-            <div class="plan-header">
-                <div class="plan-title">No Active Plan</div>
-            </div>
-            <div class="plan-status" style="color: #e74c3c;">Please select a plan to get started</div>
-        </div>
+             <div class="plan-header">
+                 <div class="plan-title">Current Plan</div>
+             </div>
+             <p class="no-plan-message">No active plan found. Select a plan to get started!</p>
         {% endif %}
+    </div>
 
-        <!-- Recent Subscriptions -->
-        <div class="recent-subscriptions">
-            <div class="section-header">
-                <h2 class="section-title">Recent Subscription</h2>
-                <a href="{% url 'frontend:subscriptions' %}" class="view-all">View all</a>
+    <!-- Recent Subscriptions -->
+    <div class="recent-subscriptions card"> {# Added 'card' base class #}
+        <div class="section-header">
+            <h2 class="section-title">Recent Subscription</h2>
+            <a href="{% url 'frontend:subscriptions' %}" class="view-all">View all</a>
+        </div>
+        <div class="subscription-list">
+            {% for subscription in recent_subscriptions %}
+            <div class="subscription-item">
+                <div class="subscription-info">
+                    <div class="subscriber-name">{{ subscription.user.get_full_name|default:subscription.user.username }}</div>
+                     {# Format date like "9 Jan, 2025" #}
+                    <div class="subscription-date">{{ subscription.created_at|date:"j M, Y" }}</div>
+                </div>
+                 {# Use intcomma if amounts can be large #}
+                <div class="subscription-amount">+${{ subscription.amount|floatformat:2|intcomma }}</div>
             </div>
-            <div class="subscription-list">
-                {% if recent_subscriptions %}
-                    {% for subscription in recent_subscriptions %}
-                    <div class="subscription-item">
-                        <div class="subscription-info">
-                            <div class="subscriber-name">{{ subscription.user.get_full_name|default:subscription.user.username }}</div>
-                            <div class="subscription-date">{{ subscription.created_at|date:"j M, Y" }}</div>
-                        </div>
-                        <div class="subscription-amount">+${{ subscription.amount|floatformat:2 }}</div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="subscription-item">
-                        <div class="subscription-info">No recent subscriptions</div>
-                    </div>
-                {% endif %}
-            </div>
+            {% empty %}
+                 <p class="no-subscriptions-message">No recent subscriptions to display.</p>
+            {% endfor %}
         </div>
     </div>
 
     <!-- Plans Section -->
-    <div class="plans-section">
-        <h2 class="plans-title">Plans</h2>
+    <div class="plans-section card"> {# Added 'card' base class #}
+        <h2 class="plans-title">Available Plans</h2>
         <div class="plans-list">
-            {% if available_plans %}
-                {% for plan in available_plans %}
-                <div class="plan-item">
-                    <div class="plan-info">
-                        <div class="plan-name">{{ plan.name }}</div>
-                        <div class="plan-price">${{ plan.contribution_amount|floatformat:2 }}/person</div>
-                    </div>
-                    {% if user_plan %}
-                        <button class="subscribe-btn disabled" disabled>Subscribe</button>
-                    {% else %}
-                        <a href="{% url 'frontend:subscribe_plan' plan.id %}" class="subscribe-btn">Subscribe</a>
-                    {% endif %}
+            {% for plan in available_plans %}
+            <div class="plan-item">
+                <div class="plan-info">
+                    <div class="plan-name">{{ plan.name }}</div>
+                     {# Use intcomma if amounts can be large #}
+                    <div class="plan-price">${{ plan.contribution_amount|floatformat:0|intcomma }}/person</div>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="plan-item">
-                    <div class="plan-info">No plans available</div>
-                </div>
-            {% endif %}
+                {# Check if user has *any* active plan to disable #}
+                {% if user_plan %}
+                    <button class="subscribe-btn" disabled title="You already have an active plan">Subscribed</button> {# Changed text when disabled #}
+                {% else %}
+                    <a href="{% url 'frontend:subscribe_plan' plan.id %}" class="subscribe-btn">Subscribe</a>
+                {% endif %}
+            </div>
+            {% empty %}
+                 <p class="no-plans-message">No other plans available at the moment.</p>
+            {% endfor %}
         </div>
     </div>
+
 </div>
 {% endblock %}

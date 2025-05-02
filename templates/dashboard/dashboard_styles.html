@@ -1,369 +1,323 @@
+<!-- dashboard_styles.html -->
 <style>
     .content-grid {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-        max-width: 100%;
-        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Default 3 columns layout */
+        gap: var(--spacing-lg);
     }
 
-    .main-cards {
+    /* --- Card Base Styles --- */
+    .card {
+        background-color: var(--white);
+        border-radius: var(--card-radius);
+        box-shadow: var(--card-shadow);
+        padding: var(--spacing-lg);
         display: flex;
         flex-direction: column;
-        gap: 24px;
-        width: 30%;
-        min-width: 300px;
     }
 
-    /* Balance Card */
+    /* --- Balance Card --- */
     .balance-card {
-        /* background: linear-gradient(135deg, #00A651 0%, #009e4f 100%); */
-        background: linear-gradient(to bottom, #008B46 0%, #008B62 100%);
-        color: #fff;
-        padding: 28px 32px;
-        border-radius: 12px;
-        width: 100%;
-        box-shadow: 0 4px 12px rgba(0, 166, 81, 0.15);
+        grid-column: span 2; /* Span 2 columns */
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+        color: var(--white);
+        position: relative; /* For potential pseudo-elements */
+        overflow: hidden; /* Hide overflow if using background patterns */
     }
 
     .balance-label {
-        font-size: 0.95rem;
-        opacity: 0.9;
-        margin-bottom: 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        opacity: 0.8;
+        margin-bottom: var(--spacing-xs);
     }
 
     .balance-amount {
-        font-size: 2.5rem;
-        font-weight: 600;
-        margin-bottom: 8px;
+        font-size: 2.5rem; /* Large amount */
+        font-weight: 700;
         line-height: 1.2;
+        margin-bottom: var(--spacing-sm);
     }
 
     .balance-meta {
-        font-size: 0.9rem;
-        opacity: 0.85;
+        font-size: 0.85rem;
+        opacity: 0.7;
     }
 
-    /* Current Plan Card */
+    /* --- Current Plan Card --- */
     .current-plan {
-        background: #fff;
-        padding: 24px 28px;
-        width: 100%;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+       /* Takes 1 column by default */
+       min-height: 180px; /* Ensure minimum height */
     }
 
     .plan-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: var(--spacing-md);
     }
 
     .plan-title {
         font-size: 1.1rem;
         font-weight: 600;
-        color: #333;
+        color: var(--text-color);
     }
 
     .plan-badge {
-        background: #f5f5f5;
-        color: #666;
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-size: 0.9rem;
-        font-weight: 500;
+        background-color: #e7f6ec; /* Light green background */
+        color: var(--primary-dark);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
     }
 
     .progress-text {
-        font-size: 1.25rem;
-        font-weight: 500;
-        margin-bottom: 12px;
-        color: #333;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-bottom: var(--spacing-xs);
+        text-align: right;
     }
 
     .progress-bar {
-        height: 6px;
-        background: #f0f0f0;
-        border-radius: 3px;
-        margin-bottom: 16px;
         width: 100%;
+        height: 6px;
+        background-color: #e0e0e0;
+        border-radius: 3px;
         overflow: hidden;
+        margin-bottom: var(--spacing-sm);
     }
 
     .progress-fill {
         height: 100%;
-        background: #00A651;
+        background-color: var(--primary-color);
         border-radius: 3px;
-        transition: width 0.3s ease;
+        transition: width 0.5s ease-out;
     }
 
     .progress-note {
-        font-size: 0.9rem;
-        color: #666;
-        margin-bottom: 12px;
+        font-size: 0.8rem;
+        color: var(--text-very-light);
+        margin-bottom: var(--spacing-md);
     }
 
     .plan-status {
-        font-size: 0.95rem;
-        color: #00A651;
-        font-weight: 500;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: auto; /* Push to bottom */
+        color: var(--primary-color); /* Green for Active */
     }
+     .plan-status.inactive { /* Example for other statuses */
+         color: #e74c3c;
+     }
+     .no-plan-message {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        text-align: center;
+        margin: auto; /* Center vertically and horizontally */
+     }
 
-    /* Recent Subscriptions */
+
+    /* --- Recent Subscriptions Card --- */
     .recent-subscriptions {
-        background: #fff;
-        padding: 24px 28px;
-        border-radius: 12px;
-        width: 100%;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        grid-column: span 2; /* Span 2 columns */
     }
 
     .section-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: var(--spacing-lg);
     }
 
     .section-title {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         font-weight: 600;
-        color: #333;
+        color: var(--text-color);
+        margin: 0;
     }
 
     .view-all {
-        background: #e8f5ff;
-        color: #00A651;
-        padding: 6px 12px;
-        border-radius: 6px;
+        color: var(--primary-color);
+        text-decoration: none;
         font-size: 0.9rem;
         font-weight: 500;
-        text-decoration: none;
-        transition: background-color 0.2s;
     }
-
     .view-all:hover {
-        background: #d9f0ff;
+        text-decoration: underline;
     }
 
     .subscription-list {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: var(--spacing-md);
     }
 
     .subscription-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 4px 0;
+        padding-bottom: var(--spacing-md);
+        border-bottom: 1px solid #eee;
+    }
+    .subscription-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
     }
 
     .subscription-info {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+        /* Takes remaining space */
     }
 
     .subscriber-name {
-        font-size: 1rem;
-        font-weight: 500;
-        color: #333;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text-color);
+        margin-bottom: 2px;
     }
 
     .subscription-date {
-        font-size: 0.9rem;
-        color: #888;
+        font-size: 0.8rem;
+        color: var(--text-light);
     }
 
     .subscription-amount {
-        color: #00A651;
         font-weight: 600;
         font-size: 1rem;
+        color: var(--primary-color); /* Green for incoming */
+    }
+    .no-subscriptions-message {
+        color: var(--text-light);
+        font-size: 0.9rem;
+        text-align: center;
+        padding: var(--spacing-md) 0;
     }
 
-    /* Plans Section */
+    /* --- Plans Section/Card --- */
     .plans-section {
-        background: #fff;
-        padding: 24px 28px;
-        border-radius: 12px;
-        height: 100%;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        min-width: 300px;
-        width: 50%;
+       grid-column: span 1; /* Span 1 column */
     }
 
     .plans-title {
-        color: #666;
         font-size: 1.2rem;
         font-weight: 600;
-        margin-bottom: 24px;
+        color: var(--text-color);
+        margin: 0 0 var(--spacing-lg) 0; /* Add bottom margin */
     }
 
     .plans-list {
         display: flex;
         flex-direction: column;
-        gap: 20px;
-        width: 100%;
+        gap: var(--spacing-md);
     }
 
     .plan-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px;
-        border-radius: 8px;
-        background: #e6f9f0;
-        transition: background-color 0.2s ease;
+        padding-bottom: var(--spacing-md);
+        border-bottom: 1px solid #eee;
     }
-
-    .plan-item:hover {
-        background: #ccf3e1;
+    .plan-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
     }
 
     .plan-info {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        min-width: 0; /* Prevents text overflow */
+        /* Takes space */
     }
 
     .plan-name {
-        font-size: 1rem;
-        color: var(--primary-color);
         font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 0.95rem;
+        color: var(--text-color);
+        margin-bottom: 2px;
     }
 
     .plan-price {
-        font-size: 0.95rem;
-        color: var(--primary-dark);
-        font-weight: 500;
+        font-size: 0.85rem;
+        color: var(--text-light);
     }
 
     .subscribe-btn {
-        background: var(--primary-color);
-        color: #fff;
-        padding: 8px 24px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 1rem;
+        background-color: var(--secondary-color); /* Light blue */
+        color: var(--white);
         border: none;
+        padding: 8px 16px; /* Adjust padding */
+        border-radius: var(--button-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
         cursor: pointer;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-        margin-left: 16px;
-        box-shadow: 0 2px 8px rgba(0,166,81,0.10);
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        transition: background-color 0.2s ease, transform 0.1s ease;
     }
 
-    .subscribe-btn:not(:disabled):hover {
-        background: var(--primary-dark);
-        opacity: 1;
-        transform: translateY(-2px) scale(1.03);
+    .subscribe-btn:hover:not(:disabled) {
+        background-color: #8ab4f8; /* Darker blue on hover */
     }
 
-    .subscribe-btn:disabled,
-    .subscribe-btn.disabled {
-        background: #e2e8f0;
-        color: #a0aec0;
+    .subscribe-btn:active:not(:disabled) {
+        transform: scale(0.97);
+    }
+
+    .subscribe-btn.disabled,
+    .subscribe-btn:disabled {
+        background-color: #d0d0d0; /* Grey background */
+        color: #888;
         cursor: not-allowed;
+        opacity: 0.7;
+    }
+     .no-plans-message {
+        color: var(--text-light);
+        font-size: 0.9rem;
+        text-align: center;
+        padding: var(--spacing-md) 0;
     }
 
-    /* Responsive Styles */
-    @media (max-width: 1400px) {
-        .content-grid {
-            gap: 32px;
-        }
-        
-        .main-cards {
-            width: 35%;
-        }
-        
-        .plans-section {
-            width: 45%;
-        }
-    }
 
+    /* --- Responsive Adjustments for Content Grid --- */
     @media (max-width: 1200px) {
         .content-grid {
-            gap: 24px;
+             /* Adjust grid for medium-large screens if needed, e.g., 2 columns */
+             /* grid-template-columns: repeat(2, 1fr); */
+             /* Make all cards span 1 column if switching to 2-col layout */
+             /* .balance-card, .recent-subscriptions { grid-column: span 1; } */
         }
-        
-        .main-cards {
-            width: 40%;
-        }
-        
-        .plans-section {
-            width: 45%;
-        }
+         .balance-amount {
+            font-size: 2.2rem;
+         }
     }
+
 
     @media (max-width: 992px) {
         .content-grid {
-            flex-direction: column;
-            align-items: center;
-            gap: 24px;
+            grid-template-columns: 1fr; /* Stack everything into a single column */
         }
-
-        .main-cards {
-            width: 90%;
-            max-width: 600px;
-        }
-
-        .plans-section {
-            width: 90%;
-            max-width: 600px;
-            height: auto;
-        }
-
-        .balance-amount {
-            font-size: 2.2rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .content-grid {
-            gap: 16px;
-        }
-
-        .main-cards {
-            width: 95%;
-            gap: 16px;
-        }
-
-        .plans-section {
-            width: 95%;
-        }
-
+         /* Reset column spans */
         .balance-card,
         .current-plan,
         .recent-subscriptions,
         .plans-section {
-            padding: 20px;
-        }
-
-        .balance-amount {
-            font-size: 2rem;
-        }
-
-        .plan-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-        }
-
-        .subscription-item {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-        }
-
-        .subscription-amount {
-            align-self: flex-end;
+            grid-column: span 1;
         }
     }
-</style> 
+
+     @media (max-width: 576px) {
+         .balance-amount {
+            font-size: 1.8rem;
+         }
+         .section-title, .plans-title {
+             font-size: 1.1rem;
+         }
+         .card {
+             padding: var(--spacing-md);
+         }
+         .subscribe-btn {
+             padding: 6px 12px;
+             font-size: 0.8rem;
+         }
+     }
+
+</style>
