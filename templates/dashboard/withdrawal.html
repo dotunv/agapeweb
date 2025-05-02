@@ -185,14 +185,14 @@
             <div class="form-group">
                 <label class="form-label">Account to Withdraw</label>
                 <select name="account_type" class="form-select" required id="accountType">
-                    <option value="referral_bonus">Referral Bonus</option>
                     <option value="main_balance">Main Balance</option>
+                    <option value="referral_bonus">Referral Bonus</option>
                 </select>
-                <div class="balance-info" id="referralBalance">
-                    Available Balance: <span class="balance-amount">${{ referral_bonus|floatformat:2 }}</span>
-                </div>
-                <div class="balance-info" id="mainBalance" style="display: none;">
+                <div class="balance-info" id="mainBalance">
                     Available Balance: <span class="balance-amount">${{ wallet_balance|floatformat:2 }}</span>
+                </div>
+                <div class="balance-info" id="referralBalance" style="display: none;">
+                    Available Balance: <span class="balance-amount">${{ referral_bonus|floatformat:2 }}</span>
                 </div>
             </div>
 
@@ -230,6 +230,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const referralBonus = {{ referral_bonus|floatformat:2 }};
     const walletBalance = {{ wallet_balance|floatformat:2 }};
 
+    // Show initial balance based on selected account type
+    function updateBalanceDisplay() {
+        const selectedValue = accountTypeSelect.value;
+        if (selectedValue === 'referral_bonus') {
+            referralBalanceDiv.style.display = 'flex';
+            mainBalanceDiv.style.display = 'none';
+        } else {
+            referralBalanceDiv.style.display = 'none';
+            mainBalanceDiv.style.display = 'flex';
+        }
+        validateAmount();
+    }
+
     function calculateAmountToReceive(amount) {
         const fee = amount * 0.05; // 5% fee
         const amountToReceive = amount - fee;
@@ -258,16 +271,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
 
-    accountTypeSelect.addEventListener('change', function() {
-        if (this.value === 'referral_bonus') {
-            referralBalanceDiv.style.display = 'flex';
-            mainBalanceDiv.style.display = 'none';
-        } else {
-            referralBalanceDiv.style.display = 'none';
-            mainBalanceDiv.style.display = 'flex';
-        }
-        validateAmount();
-    });
+    // Initialize the display
+    updateBalanceDisplay();
+
+    accountTypeSelect.addEventListener('change', updateBalanceDisplay);
 
     amountInput.addEventListener('input', function() {
         const amount = parseFloat(this.value) || 0;
