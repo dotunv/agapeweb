@@ -341,7 +341,7 @@ body {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: var(--spacing-xs) var(--spacing-xl);
+            padding: 12px var(--spacing-xl);
             border-bottom: 1px solid #eee;
             background: #fff;
             margin-bottom: 0;
@@ -359,7 +359,7 @@ body {
         }
 
         .navbar-brand .logo {
-            height: 32px;
+            height: 28px;
             width: auto;
         }
 
@@ -382,7 +382,8 @@ body {
 
         .auth-buttons {
             display: flex;
-            gap: var(--spacing-sm);
+            gap: 10px;
+            align-items: center;
         }
 
         .mobile-menu-toggle {
@@ -542,6 +543,37 @@ body {
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #00A651;
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #008541;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: #00A651;
+            border: 1px solid #00A651;
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(0, 166, 81, 0.1);
         }
     </style>
 </head>
