@@ -18,12 +18,21 @@ class CustomSignupForm(SignupForm):
         })
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get referral code from session if available
+        request = kwargs.get('request')
+        if request and 'referral_code' in request.session:
+            self.initial['referral_code'] = request.session['referral_code']
+            # Clear it from session after using
+            del request.session['referral_code']
+
     def clean_referral_code(self):
         referral_code = self.cleaned_data.get('referral_code')
         if referral_code:
             try:
                 referrer = User.objects.get(referral_code=referral_code)
-                if referrer == self.user:
+                if hasattr(self, 'user') and self.user and referrer == self.user:
                     raise forms.ValidationError(_('You cannot use your own referral code'))
             except User.DoesNotExist:
                 raise forms.ValidationError(_('Invalid referral code'))

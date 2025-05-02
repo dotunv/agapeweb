@@ -348,7 +348,7 @@
             {% with field=form.referral_code %}
             <div class="form-group {% if field.errors %}error{% endif %}">
                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                {% render_field field class+="form-input" placeholder="Enter Referral Code (Optional)" %}
+                {% render_field field class+="form-input" placeholder="Enter Referral Code (Optional)" readonly=field.initial %}
                 {% if field.help_text %}
                 <small class="form-text text-muted" style="display: block; margin-top: 4px; font-size: 0.8rem; color: var(--text-light);">
                     {{ field.help_text }}

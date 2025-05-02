@@ -32,7 +32,6 @@ def register(request):
         except User.DoesNotExist:
             messages.warning(request, 'Invalid referral code.')
     
-    # Redirect to allauth's signup view
     return redirect('account_signup')
 
 @login_required
