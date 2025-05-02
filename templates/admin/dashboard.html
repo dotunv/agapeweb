@@ -33,7 +33,12 @@
             <div class="stat-info">
                 <h3>Total Deposits</h3>
                 <div class="stat-value">${{ total_deposits_amount|default:"0.00" }}</div>
-                <div class="stat-label">{{ total_deposits }} transactions</div>
+                <div class="stat-label">
+                    {{ total_deposits }} transactions
+                    <span class="trend {% if deposits_percent_change > 0 %}positive{% elif deposits_percent_change < 0 %}negative{% else %}neutral{% endif %}">
+                        {% if deposits_percent_change > 0 %}+{% endif %}{{ deposits_percent_change|floatformat:1 }}%
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -47,7 +52,12 @@
             <div class="stat-info">
                 <h3>Total Withdrawals</h3>
                 <div class="stat-value">${{ total_withdrawals_amount|default:"0.00" }}</div>
-                <div class="stat-label">{{ total_withdrawals }} transactions</div>
+                <div class="stat-label">
+                    {{ total_withdrawals }} transactions
+                    <span class="trend {% if withdrawals_percent_change > 0 %}positive{% elif withdrawals_percent_change < 0 %}negative{% else %}neutral{% endif %}">
+                        {% if withdrawals_percent_change > 0 %}+{% endif %}{{ withdrawals_percent_change|floatformat:1 }}%
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -62,7 +72,31 @@
             <div class="stat-info">
                 <h3>Net Revenue</h3>
                 <div class="stat-value">${{ net_revenue|default:"0.00" }}</div>
-                <div class="stat-label">Total earnings</div>
+                <div class="stat-label">
+                    Total earnings
+                    <span class="trend {% if net_revenue_percent_change > 0 %}positive{% elif net_revenue_percent_change < 0 %}negative{% else %}neutral{% endif %}">
+                        {% if net_revenue_percent_change > 0 %}+{% endif %}{{ net_revenue_percent_change|floatformat:1 }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon transactions">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </div>
+            <div class="stat-info">
+                <h3>Transaction Volume</h3>
+                <div class="stat-value">{{ total_transactions }}</div>
+                <div class="stat-label">
+                    Total transactions
+                    <span class="trend {% if transactions_percent_change > 0 %}positive{% elif transactions_percent_change < 0 %}negative{% else %}neutral{% endif %}">
+                        {% if transactions_percent_change > 0 %}+{% endif %}{{ transactions_percent_change|floatformat:1 }}%
+                    </span>
+                </div>
             </div>
         </div>
     </div>
@@ -104,23 +138,27 @@
             <div class="card-header">
                 <h3>Quick Stats</h3>
                 <div class="period-selector">
-                    <button class="active">Today</button>
-                    <button>Week</button>
-                    <button>Month</button>
+                    <a href="?period=today" class="{% if period == 'today' %}active{% endif %}">Today</a>
+                    <a href="?period=week" class="{% if period == 'week' %}active{% endif %}">Week</a>
+                    <a href="?period=month" class="{% if period == 'month' %}active{% endif %}">Month</a>
                 </div>
             </div>
             <div class="stats-list">
                 <div class="quick-stat">
                     <div class="stat-header">
                         <h4>New Users</h4>
-                        <span class="trend positive">+5.2%</span>
+                        <span class="trend {% if new_users_percent_change > 0 %}positive{% elif new_users_percent_change < 0 %}negative{% else %}neutral{% endif %}">
+                            {% if new_users_percent_change > 0 %}+{% endif %}{{ new_users_percent_change|floatformat:1 }}%
+                        </span>
                     </div>
                     <div class="stat-number">{{ new_users_count }}</div>
                 </div>
                 <div class="quick-stat">
                     <div class="stat-header">
                         <h4>Active Users</h4>
-                        <span class="trend positive">+12.5%</span>
+                        <span class="trend {% if active_users_percent_change > 0 %}positive{% elif active_users_percent_change < 0 %}negative{% else %}neutral{% endif %}">
+                            {% if active_users_percent_change > 0 %}+{% endif %}{{ active_users_percent_change|floatformat:1 }}%
+                        </span>
                     </div>
                     <div class="stat-number">{{ active_users_count }}</div>
                 </div>
@@ -169,6 +207,7 @@
     .stat-icon.deposits { background: #2196F3; }
     .stat-icon.withdrawals { background: #FF9800; }
     .stat-icon.revenue { background: #9C27B0; }
+    .stat-icon.transactions { background: #607D8B; }
 
     .stat-info h3 {
         font-size: 0.875rem;
@@ -274,7 +313,7 @@
         gap: 0.5rem;
     }
 
-    .period-selector button {
+    .period-selector a {
         padding: 0.25rem 0.75rem;
         border: 1px solid #ddd;
         border-radius: 20px;
@@ -282,12 +321,18 @@
         font-size: 0.875rem;
         cursor: pointer;
         transition: all 0.2s;
+        text-decoration: none;
+        color: #666;
     }
 
-    .period-selector button.active {
-        background: #1a1a1a;
+    .period-selector a:hover {
+        background: #f5f5f5;
+    }
+
+    .period-selector a.active {
+        background: #000;
         color: white;
-        border-color: #1a1a1a;
+        border-color: #000;
     }
 
     .stats-list {
