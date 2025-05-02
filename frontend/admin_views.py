@@ -301,4 +301,32 @@ def search_suggestions(request):
         # Remove duplicates and limit to 5 suggestions
         suggestions = list(dict.fromkeys(suggestions))[:5]
     
-    return JsonResponse({'suggestions': suggestions}) 
+    return JsonResponse({'suggestions': suggestions})
+
+@admin_required
+def create_staff_user(request):
+    """View for creating new staff users."""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        if not all([username, email, password]):
+            messages.error(request, 'Please fill in all required fields')
+            return redirect('admin:create_staff_user')
+            
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+            user.is_staff = True
+            user.save()
+            messages.success(request, f'Staff user {username} created successfully')
+            return redirect('admin:manage_users')
+        except Exception as e:
+            messages.error(request, f'Error creating staff user: {str(e)}')
+            return redirect('admin:create_staff_user')
+            
+    return render(request, 'admin/create_staff_user.html') 

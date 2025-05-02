@@ -10,6 +10,15 @@
     <div class="stats-section">
         <div class="stats-label">Total Number of Users</div>
         <div class="user-count">{{ total_users }}</div>
+        <a href="{% url 'admin:create_staff_user' %}" class="create-staff-button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            Create Staff User
+        </a>
     </div>
 
     <!-- Debug info - will remove after confirming -->
@@ -421,6 +430,25 @@
 
     .fa-sort-up, .fa-sort-down {
         color: #82c091;
+    }
+
+    .create-staff-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #82c091;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-left: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .create-staff-button:hover {
+        background: #6baf7a;
+        color: white;
     }
 </style>
 {% endblock %}
