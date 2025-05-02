@@ -1,5 +1,6 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% load static %}
+{% load humanize %} {# For timesince filter #}
 
 {% block page_title %}Notifications{% endblock %}
 
@@ -7,261 +8,490 @@
 
 {% block extra_css %}
 <style>
-.notifications-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-}
+    /* Inherit variables from base_dashboard.html */
 
-.notification-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.notification-item {
-    background: #fff;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    transition: transform 0.2s, box-shadow 0.2s;
-    position: relative;
-    opacity: 1;
-    transform: translateX(0);
-    animation: slideIn 0.3s ease-out;
-}
-
-.notification-item.unread {
-    background: #f0f9ff;
-    border-left: 4px solid var(--primary-color);
-}
-
-.notification-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.notification-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 8px;
-}
-
-.notification-title {
-    font-weight: 600;
-    color: #333;
-    font-size: 1.1rem;
-    margin: 0;
-}
-
-.notification-time {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.notification-message {
-    color: #444;
-    font-size: 1rem;
-    line-height: 1.5;
-    margin: 0;
-}
-
-.notification-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 12px;
-}
-
-.notification-action {
-    background: none;
-    border: none;
-    color: var(--primary-color);
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.notification-action:hover {
-    background-color: rgba(0, 166, 81, 0.1);
-}
-
-.notification-action.delete {
-    color: #dc3545;
-}
-
-.notification-action.delete:hover {
-    background-color: rgba(220, 53, 69, 0.1);
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: #666;
-}
-
-.empty-state-icon {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
+    .notifications-page-container {
+        /* Optional: Constrain width on very large screens */
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
     }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
 
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(20px);
-    }
-}
-
-.notification-item.removing {
-    animation: fadeOut 0.3s ease-out forwards;
-}
-
-/* Responsive styles */
-@media (max-width: 768px) {
-    .notifications-container {
-        padding: 16px;
+    .notification-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md, 16px); /* Use theme variable for gap */
     }
 
     .notification-item {
-        padding: 14px 16px;
+        background: var(--white, #fff);
+        border-radius: var(--card-radius, 12px); /* Use theme variable */
+        padding: var(--spacing-md, 16px) var(--spacing-lg, 24px); /* Use theme variables */
+        box-shadow: var(--card-shadow, 0 4px 12px rgba(0, 0, 0, 0.05)); /* Use theme variable */
+        transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        display: flex;
+        flex-wrap: wrap; /* Allow wrapping on small screens */
+        align-items: flex-start; /* Align items to the top */
+        gap: var(--spacing-sm, 8px) var(--spacing-md, 16px); /* Row and column gap */
+        position: relative; /* Needed for potential pseudo-elements or absolute positioning inside */
+        opacity: 1;
+        transform: translateX(0);
+        /* Removed animation here, apply it on load if desired via JS */
+    }
+
+    .notification-item.unread {
+        /* Subtle background and stronger border for unread */
+        background: #f7fdfa; /* Very light green tint */
+        border-left: 4px solid var(--primary-color, #00A651);
+        padding-left: calc(var(--spacing-lg, 24px) - 4px); /* Adjust padding to account for border */
+    }
+
+    .notification-item:hover {
+        transform: translateY(-2px); /* Slightly more lift */
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); /* Slightly stronger shadow */
+    }
+
+    .notification-content {
+        flex-grow: 1; /* Takes up available space */
+        min-width: 200px; /* Prevents excessive shrinking */
     }
 
     .notification-title {
-        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color, #333);
+        font-size: 1rem; /* Adjusted size */
+        margin: 0 0 var(--spacing-xs, 4px) 0; /* Add small bottom margin */
+        display: block; /* Ensure it takes full width */
     }
 
     .notification-message {
-        font-size: 0.95rem;
+        color: var(--text-light, #666);
+        font-size: 0.9rem; /* Slightly smaller */
+        line-height: 1.5;
+        margin: 0;
+        display: block; /* Ensure it takes full width */
     }
-}
+
+    .notification-meta {
+        flex-shrink: 0; /* Don't shrink */
+        text-align: right;
+        margin-left: auto; /* Pushes meta and actions to the right */
+        padding-top: 2px; /* Align slightly better with title */
+    }
+
+    .notification-time {
+        color: var(--text-very-light, #999);
+        font-size: 0.8rem;
+        white-space: nowrap;
+        display: block; /* Place time above actions */
+        margin-bottom: var(--spacing-sm, 8px);
+    }
+
+    .notification-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-sm, 8px);
+        /* margin-top: auto; */ /* Pushes to bottom if content area grows */
+    }
+
+    .notification-action {
+        background: none;
+        border: none;
+        color: var(--text-light, #666);
+        font-size: 1rem; /* Use icon size */
+        cursor: pointer;
+        padding: 4px; /* Small padding for click area */
+        border-radius: 4px;
+        transition: background-color 0.2s, color 0.2s;
+        line-height: 1; /* Ensure icon is centered */
+        display: inline-flex; /* Align icon properly */
+        align-items: center;
+        justify-content: center;
+    }
+    .notification-action svg { /* Style if using SVG icons */
+        width: 18px;
+        height: 18px;
+    }
+
+    .notification-action.mark-read {
+        color: var(--primary-color, #00A651);
+    }
+    .notification-action.mark-read:hover {
+        background-color: rgba(0, 166, 81, 0.1); /* Use theme color alpha */
+    }
+
+    .notification-action.delete {
+        color: #e74c3c; /* Standard danger color */
+    }
+    .notification-action.delete:hover {
+        background-color: rgba(231, 76, 60, 0.1); /* Danger color alpha */
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: var(--spacing-xl, 32px) var(--spacing-lg, 24px);
+        background-color: var(--white, #fff);
+        border-radius: var(--card-radius, 12px);
+        box-shadow: var(--card-shadow, 0 4px 12px rgba(0, 0, 0, 0.05));
+        margin-top: var(--spacing-lg, 24px);
+    }
+
+    .empty-state-icon {
+        width: 50px; /* Adjusted size */
+        height: 50px;
+        margin-bottom: var(--spacing-md, 16px);
+        opacity: 0.6;
+        filter: grayscale(50%); /* Make icon less prominent */
+    }
+    .empty-state p {
+        color: var(--text-light, #666);
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* --- Animations --- */
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeOutLeft {
+        from {
+            opacity: 1;
+            transform: scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: scale(0.95);
+            height: 0; /* Collapse height */
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-bottom: 0;
+            border: none; /* Remove border during animation */
+        }
+    }
+
+    /* Apply entrance animation - can target items loaded initially or added via JS */
+    .notification-item {
+        /* Apply animation on load if desired */
+        /* animation: slideInRight 0.4s ease-out forwards; */
+    }
+
+    .notification-item.removing {
+        animation: fadeOutLeft 0.3s ease-out forwards;
+        /* Prevent interaction during removal */
+        pointer-events: none;
+    }
+
+
+    /* --- Responsive styles --- */
+    @media (max-width: 576px) {
+        .notification-item {
+            padding: var(--spacing-md, 16px); /* Reduce padding */
+            padding-left: var(--spacing-md, 16px); /* Reset padding for unread border adjustment */
+             gap: var(--spacing-sm, 8px); /* Reduce gap */
+        }
+
+        .notification-item.unread {
+            padding-left: calc(var(--spacing-md, 16px) - 4px); /* Adjust padding for border */
+        }
+
+        .notification-content {
+             min-width: 0; /* Allow full shrink */
+             width: 100%; /* Take full width */
+             order: 1; /* Content first */
+        }
+
+        .notification-meta {
+             width: 100%; /* Take full width */
+             order: 2; /* Meta/Actions second */
+             text-align: left; /* Align left on mobile */
+             margin-left: 0;
+             display: flex; /* Arrange time and actions side-by-side */
+             justify-content: space-between; /* Space out time and actions */
+             align-items: center;
+             margin-top: var(--spacing-sm, 8px);
+        }
+
+        .notification-time {
+            margin-bottom: 0; /* Remove bottom margin */
+        }
+
+        .notification-actions {
+             /* Already flex */
+        }
+
+        .notification-title {
+            font-size: 0.95rem;
+        }
+        .notification-message {
+            font-size: 0.85rem;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="notifications-list">
-    {% if notifications %}
-        <ul class="notification-ul">
-        {% for notification in notifications %}
-            <li class="notification-li {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
-                <span class="notification-title">{{ notification.title|default:"Notification" }}</span>
-                <span class="notification-message">{{ notification.message }}</span>
-                <span class="notification-time">{{ notification.created_at|timesince }} ago</span>
-                <span class="notification-actions">
-                    {% if not notification.read %}
-                        <button class="notification-action mark-read" title="Mark as read" onclick="markAsRead({{ notification.id }})">✓</button>
-                    {% endif %}
-                    <button class="notification-action delete" title="Delete" onclick="deleteNotification({{ notification.id }})">🗑️</button>
-                </span>
-            </li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <div class="empty-state">
-            <img src="{% static 'images/icons/notifications.svg' %}" alt="No notifications" class="empty-state-icon">
-            <p>No notifications yet</p>
-        </div>
-    {% endif %}
-</div>
+<div class="notifications-page-container">
+    {# Add CSRF token for JS - place it once, preferably outside the loop #}
+    {% csrf_token %}
 
+    <div class="notification-list" id="notificationList"> {# Added ID for easier JS targeting #}
+        {% for notification in notifications %}
+            {# Use div instead of li for consistency with card styling #}
+            <div class="notification-item {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
+                <div class="notification-content">
+                    <span class="notification-title">{{ notification.title|default:"Notification" }}</span>
+                    <span class="notification-message">{{ notification.message }}</span>
+                </div>
+                <div class="notification-meta">
+                    <span class="notification-time" title="{{ notification.created_at|date:'Y-m-d H:i' }}">
+                        {{ notification.created_at|naturaltime }} {# Use naturaltime for friendlier time #}
+                    </span>
+                    <span class="notification-actions">
+                        {% if not notification.read %}
+                            {# Using SVG for checkmark icon #}
+                            <button class="notification-action mark-read" title="Mark as read" onclick="markAsRead('{{ notification.id }}')">
+                               <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                            </button>
+                        {% endif %}
+                        {# Using SVG for trash icon #}
+                        <button class="notification-action delete" title="Delete" onclick="deleteNotification('{{ notification.id }}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        {% empty %}
+            {# Moved empty state here, it will be replaced by JS if needed #}
+             <div class="empty-state">
+                 {# Make sure this icon path is correct and the icon is suitable (e.g., grey) #}
+                <img src="{% static 'images/icons/bell-off.svg' %}" alt="No notifications" class="empty-state-icon">
+                <p>You're all caught up!</p>
+            </div>
+        {% endfor %}
+    </div> {# End notification-list #}
+</div> {# End notifications-page-container #}
+
+{# Ensure the script block is within the content block or use extra_js block #}
 <script>
+// --- Helper to get CSRF token ---
+function getCsrfToken() {
+    const csrfInput = document.querySelector('input[name=csrfmiddlewaretoken]');
+    return csrfInput ? csrfInput.value : null;
+}
+
+// --- Mark Notification as Read ---
 function markAsRead(notificationId) {
-    fetch(`/api/notifications/${notificationId}/mark-read/`, {
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        return;
+    }
+
+    // Find the specific notification item
+    const notificationElement = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
+    if (!notificationElement) return; // Exit if not found
+
+    fetch(`/api/notifications/${notificationId}/mark-read/`, { // Ensure this URL is correct
         method: 'POST',
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json', // Optional, but good practice
+            'Accept': 'application/json',
         },
+        // body: JSON.stringify({}) // Optional: Add body if needed by backend
     })
     .then(response => {
-        if (response.ok) {
-            const notification = document.querySelector(`[data-id="${notificationId}"]`);
-            notification.classList.remove('unread');
-            const markReadBtn = notification.querySelector('.mark-read');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); // Assuming backend returns JSON confirm
+    })
+    .then(data => {
+        console.log('Marked as read:', data); // Log success
+        if (notificationElement) {
+            notificationElement.classList.remove('unread');
+            // Find and remove the 'Mark as read' button within this specific item
+            const markReadBtn = notificationElement.querySelector('.mark-read');
             if (markReadBtn) {
                 markReadBtn.remove();
             }
         }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+        // Optionally display a user-friendly error message
     });
 }
 
+// --- Delete Notification ---
 function deleteNotification(notificationId) {
-    fetch(`/api/notifications/${notificationId}/`, {
+    const csrfToken = getCsrfToken();
+     if (!csrfToken) {
+        console.error('CSRF token not found');
+        return;
+    }
+
+    const notificationElement = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
+    if (!notificationElement) return; // Exit if not found
+
+    // Optional: Confirmation dialog
+    // if (!confirm('Are you sure you want to delete this notification?')) {
+    //     return;
+    // }
+
+    fetch(`/api/notifications/${notificationId}/`, { // Ensure this URL is correct
         method: 'DELETE',
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-CSRFToken': csrfToken,
+            'Accept': 'application/json', // Expect JSON response or just status
         },
     })
     .then(response => {
-        if (response.ok) {
-            const notification = document.querySelector(`[data-id="${notificationId}"]`);
-            notification.classList.add('removing');
-            setTimeout(() => {
-                notification.remove();
-                if (document.querySelectorAll('.notification-item').length === 0) {
-                    document.getElementById('notificationList').innerHTML = `
+        if (!response.ok) {
+            // If expecting JSON error details:
+            // return response.json().then(err => { throw new Error(err.detail || `HTTP error! status: ${response.status}`) });
+             throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        // Check for 204 No Content or handle JSON response if backend sends one
+        return response.status === 204 ? null : response.json();
+    })
+    .then(data => {
+         console.log('Deleted:', notificationId, data); // Log success
+        if (notificationElement) {
+            notificationElement.classList.add('removing');
+            // Wait for animation to finish before removing from DOM
+            notificationElement.addEventListener('animationend', () => {
+                notificationElement.remove();
+                // Check if the list is now empty
+                const listContainer = document.getElementById('notificationList');
+                if (listContainer && listContainer.querySelectorAll('.notification-item').length === 0) {
+                    // Inject the empty state HTML
+                    listContainer.innerHTML = `
                         <div class="empty-state">
-                            <img src="/static/images/icons/notifications.svg" alt="No notifications" class="empty-state-icon">
-                            <p>No notifications yet</p>
+                            <img src="{% static 'images/icons/bell-off.svg' %}" alt="No notifications" class="empty-state-icon">
+                            <p>You're all caught up!</p>
                         </div>
                     `;
                 }
-            }, 300);
+            }, { once: true }); // Ensure listener runs only once
         }
+    })
+    .catch(error => {
+        console.error('Error deleting notification:', error);
+         // Optionally display a user-friendly error message
+         // Re-enable the item if deletion failed visually
+         if(notificationElement) {
+             notificationElement.classList.remove('removing');
+         }
     });
 }
 
-// WebSocket connection for real-time notifications
-const ws = new WebSocket(`ws://${window.location.host}/ws/notifications/`);
 
-ws.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-    if (data.type === 'notification') {
-        const notification = data.notification;
-        const notificationHtml = `
-            <div class="notification-item unread" data-id="${notification.id}">
-                <div class="notification-header">
-                    <h3 class="notification-title">${notification.title || 'Notification'}</h3>
-                    <span class="notification-time">just now</span>
-                </div>
-                <p class="notification-message">${notification.message}</p>
-                <div class="notification-actions">
-                    <button class="notification-action mark-read" onclick="markAsRead(${notification.id})">
-                        Mark as read
-                    </button>
-                    <button class="notification-action delete" onclick="deleteNotification(${notification.id})">
-                        Delete
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        const emptyState = document.querySelector('.empty-state');
-        if (emptyState) {
-            emptyState.remove();
+// --- WebSocket connection for real-time notifications ---
+// Make sure your WebSocket URL and logic are correct
+const notificationListElement = document.getElementById('notificationList');
+// Example: ws:// or wss://
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsUrl = `${wsProtocol}//${window.location.host}/ws/notifications/`; // Adjust path if needed
+
+try {
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = function(event) {
+        console.log("WebSocket connection opened");
+        // Optional: Send authentication token if required by backend
+        // ws.send(JSON.stringify({ token: 'your_auth_token' }));
+    };
+
+    ws.onmessage = function(event) {
+        console.log("WebSocket message received:", event.data);
+        try {
+            const data = JSON.parse(event.data);
+
+            // Check message type - adapt to your backend's structure
+            if (data.type === 'notification' && data.notification) {
+                const notification = data.notification;
+
+                // --- Create the new notification HTML ---
+                // Use the same structure as the server-rendered ones
+                const newNotificationDiv = document.createElement('div');
+                newNotificationDiv.className = 'notification-item unread'; // Assume new are unread
+                newNotificationDiv.setAttribute('data-id', notification.id);
+                 // Add entrance animation class
+                newNotificationDiv.style.animation = 'slideInRight 0.4s ease-out forwards';
+
+
+                newNotificationDiv.innerHTML = `
+                    <div class="notification-content">
+                        <span class="notification-title">${notification.title || 'Notification'}</span>
+                        <span class="notification-message">${notification.message}</span>
+                    </div>
+                    <div class="notification-meta">
+                        <span class="notification-time" title="${new Date().toISOString()}">
+                            just now
+                        </span>
+                        <span class="notification-actions">
+                            <button class="notification-action mark-read" title="Mark as read" onclick="markAsRead('${notification.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                            </button>
+                            <button class="notification-action delete" title="Delete" onclick="deleteNotification('${notification.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
+                            </button>
+                        </span>
+                    </div>
+                `;
+
+                // Remove empty state if present
+                const emptyStateElement = notificationListElement.querySelector('.empty-state');
+                if (emptyStateElement) {
+                    emptyStateElement.remove();
+                }
+
+                // Add the new notification to the top of the list
+                notificationListElement.insertBefore(newNotificationDiv, notificationListElement.firstChild);
+
+            } else if (data.type === 'error') {
+                 console.error("WebSocket error message:", data.message);
+            }
+            // Handle other message types if needed
+
+        } catch (e) {
+            console.error("Error parsing WebSocket message or processing notification:", e);
         }
-        
-        document.getElementById('notificationList').insertAdjacentHTML('afterbegin', notificationHtml);
-    }
-};
+    };
+
+    ws.onerror = function(event) {
+        console.error("WebSocket error observed:", event);
+    };
+
+    ws.onclose = function(event) {
+        console.log("WebSocket connection closed:", event.code, event.reason);
+        // Optional: Implement reconnection logic here
+    };
+
+} catch (e) {
+    console.error("Failed to create WebSocket:", e);
+}
+
+
+// --- Initial Animation for existing items (optional) ---
+// document.addEventListener('DOMContentLoaded', () => {
+//     const existingItems = document.querySelectorAll('#notificationList .notification-item');
+//     existingItems.forEach((item, index) => {
+//         item.style.animation = `slideInRight 0.4s ease-out ${index * 0.05}s forwards`;
+//         item.style.opacity = '0'; // Start hidden before animation runs
+//     });
+// });
+
+
 </script>
-{% endblock %} 
+{% endblock %}
