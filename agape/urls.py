@@ -38,6 +38,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('subscriptions/', include('subscriptions.urls')),
     path('transactions/', include('transactions.urls')),
+    path('core/', include('core.urls')),
 ]
 
 # Debug Toolbar URLs (must be before static/media URLs)

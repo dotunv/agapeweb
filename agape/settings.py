@@ -30,9 +30,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('DJANGO_SECRET_KEY', default='your-secret-key-here')
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG = env.bool('DJANGO_DEBUG', default=True)
 
 if DEBUG:
     # Local development — do not force HTTPS
@@ -124,9 +124,9 @@ WSGI_APPLICATION = 'agape.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.parse(
-        'postgresql://agapedb_owner:npg_X8UZL1KswYbx@ep-lively-cloud-a89v9i2s-pooler.eastus2.azure.neon.tech/agapedb?sslmode=require',
+        env('DATABASE_URL'),
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=not DEBUG
     )
 }
 
@@ -500,12 +500,17 @@ RATELIMIT_KEY_PREFIX = 'ratelimit'
 # SMTP Settings
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='your_gmail_address@gmail.com')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='your_gmail_password')
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='your_gmail_address@gmail.com')
+EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+
+# Stripe settings
+STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY', default='')
+STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='')
+STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')
 
 CONTENT_SECURITY_POLICY = {
     'DIRECTIVES': {
